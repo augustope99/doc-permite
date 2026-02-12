@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doc Permite - Envio de Documentos</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://alcdn.msauth.net/browser/2.30.0/js/msal-browser.min.js"></script>
+</head>
+<body>
+    <div class="sidebar-text sidebar-left">P E R m i t e</div>
+    <div class="sidebar-text sidebar-right">P E R m i t e</div>
+    <div class="container">
+        <header>
+            <h1>Controle de credenciamento</h1>
+            <p>Envio de Documentos de Credenciamento</p>
+        </header>
+
+        <form id="docForm">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="especialista">Especialista / Executivo *</label>
+                    <input type="text" id="especialista" name="especialista" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="qtdePos">Qtde de POS *</label>
+                    <input type="number" id="qtdePos" name="qtdePos" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="accelere">Possui Accelere? *</label>
+                    <select id="accelere" name="accelere" required>
+                        <option value="">Selecione</option>
+                        <option value="Sim">Sim</option>
+                        <option value="Não">Não</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="filial">Filial *</label>
+                    <input type="text" id="filial" name="filial" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="marca">Marca *</label>
+                    <select id="marca" name="marca" required>
+                        <option value="">Selecione</option>
+                        <option value="RMP">RMP</option>
+                        <option value="DISAPE">DISAPE</option>
+                        <option value="REAL DUAS RODAS">REAL DUAS RODAS</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="codigoCliente">Código do Cliente *</label>
+                    <input type="text" id="codigoCliente" name="codigoCliente" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="cnpj">CNPJ *</label>
+                    <input type="text" id="cnpj" name="cnpj" placeholder="00.000.000/0000-00" required>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="razaoSocial">Razão Social *</label>
+                    <input type="text" id="razaoSocial" name="razaoSocial" required>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="nomeFantasia">Nome Fantasia *</label>
+                    <input type="text" id="nomeFantasia" name="nomeFantasia" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">E-mail *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="quemSugeriu">Quem Sugeriu? *</label>
+                    <input type="text" id="quemSugeriu" name="quemSugeriu" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="principalContato">Principal Contato *</label>
+                    <input type="text" id="principalContato" name="principalContato" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="whatsapp">WhatsApp *</label>
+                    <input type="tel" id="whatsapp" name="whatsapp" placeholder="(00) 00000-0000" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="dataRecebimento">Data de Envio de Docs *</label>
+                    <input type="date" id="dataRecebimento" name="dataRecebimento" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="tipoCredenciamento">Tipo Credenciamento *</label>
+                    <input type="text" id="tipoCredenciamento" name="tipoCredenciamento" required>
+                </div>
+
+            <div class="upload-section">
+                <label for="fotoTermo" class="upload-label">Anexar Foto do Termo de Adesão </label>
+                <input type="file" id="fotoTermo" name="fotoTermo" accept="image/*,.pdf" required>
+                <div id="fileName" class="file-name"></div>
+            </div>
+
+                        <div class="upload-section">
+                <label for="fotoTermo" class="upload-label">Comprovante bancário </label>
+                <input type="file" id="fotoTermo" name="fotoTermo" accept="image/*,.pdf" required>
+                <div id="fileName" class="file-name"></div>
+            </div>
+
+            <div class="button-container">
+                <button type="submit" class="submit-btn">Enviar Documentos</button>
+            </div>
+        </form>
+
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p>Enviando documentos...</p>
+        </div>
+
+        <div id="message" class="message hidden"></div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

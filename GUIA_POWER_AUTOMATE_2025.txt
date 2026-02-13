@@ -1,0 +1,362 @@
+# 🤖 GUIA COMPLETO - AUTOMAÇÃO POWER AUTOMATE 2025
+## Extração Automática de E-mails para SharePoint
+
+---
+
+## 📋 VISÃO GERAL
+
+Este guia ensina a criar uma automação que:
+1. Monitora e-mails recebidos em **docpermite@per.com.br**
+2. Extrai automaticamente os dados do e-mail
+3. Salva os dados em uma planilha do SharePoint
+4. Salva os anexos (Termo de Adesão e Comprovante Bancário)
+
+---
+
+## 🗂️ PARTE 1: PREPARAR A PLANILHA NO SHAREPOINT
+
+### Passo 1: Criar a Lista no SharePoint
+
+1. Acesse: **https://per.sharepoint.com** (ou seu site SharePoint)
+2. Vá no site onde deseja criar a lista
+3. Clique em **"+ New"** > **"List"** (Nova > Lista)
+4. Escolha **"Blank list"** (Lista em branco)
+5. Nome: **"Controle de Credenciamento"**
+6. Clique em **"Create"**
+
+### Passo 2: Criar as Colunas
+
+Clique em **"+ Add column"** e crie cada coluna abaixo:
+
+| Nome da Coluna | Tipo | Configuração |
+|----------------|------|--------------|
+| Especialista_Executivo | Single line of text | - |
+| EC | Single line of text | - |
+| Qtde_POS | Number | - |
+| Possui_Accelere | Choice | Opções: Inativo, Ativo, Não Apto |
+| Filial | Single line of text | - |
+| Marca | Choice | Opções: RMP, DISAPE, REAL DUAS RODAS |
+| Codigo_Cliente | Single line of text | - |
+| CNPJ | Single line of text | - |
+| Razao_Social | Single line of text | - |
+| Nome_Fantasia | Single line of text | - |
+| Email_Usuario | Single line of text | - |
+| Quem_Sugeriu | Single line of text | - |
+| Principal_Contato | Single line of text | - |
+| WhatsApp | Single line of text | - |
+| Data_Envio_Docs | Date | Data preenchida no formulário |
+| Tipo_Credenciamento | Single line of text | - |
+| Tempo_Credenciamento | Single line of text | - |
+| Comprovante_Bancario | Single line of text | - |
+| Termo_Adesao | Single line of text | - |
+| Data_Recebimento_Docs | Date | Data que o e-mail chegou |
+| Hora_Recebimento_Docs | Single line of text | Hora que o e-mail chegou |
+
+---
+
+## 🤖 PARTE 2: CRIAR O POWER AUTOMATE
+
+### Passo 1: Acessar Power Automate
+
+1. Acesse: **https://make.powerautomate.com**
+2. Faça login com sua conta **@per.com.br**
+3. Clique em **"+ Create"** (Criar)
+4. Escolha **"Automated cloud flow"** (Fluxo de nuvem automatizado)
+
+### Passo 2: Configurar o Gatilho
+
+1. Nome do fluxo: **"Doc Permite - Extração Automática"**
+2. Procure por: **"When a new email arrives"**
+3. Selecione: **"When a new email arrives (V3)"** do **Office 365 Outlook**
+4. Clique em **"Create"**
+
+### Passo 3: Configurar o Gatilho de E-mail
+
+Configure o gatilho com:
+
+```
+Folder: Inbox (Caixa de Entrada)
+To: docpermite@per.com.br
+Subject Filter: Novo - Credenciamento
+Include Attachments: Yes
+Importance: Any
+```
+
+### Passo 4: Adicionar Ação - Obter Corpo do E-mail
+
+1. Clique em **"+ New step"**
+2. Procure por: **"Get email"**
+3. Selecione: **"Get email (V2)"** do **Office 365 Outlook**
+4. Configure:
+   - **Message Id**: Selecione **"Message Id"** do gatilho (conteúdo dinâmico)
+   - **Include Attachments**: Yes
+
+### Passo 5: Adicionar Ação - Analisar HTML
+
+1. Clique em **"+ New step"**
+2. Procure por: **"Compose"**
+3. Selecione: **"Compose"** (Data Operations)
+4. Renomeie para: **"Extrair Dados do E-mail"**
+5. No campo **Inputs**, clique em **"Expression"** e cole:
+
+```
+body('Get_email_(V2)')?['body']
+```
+
+### Passo 6: Adicionar Ações de Extração
+
+Para cada campo, adicione uma ação **"Compose"**:
+
+#### Extrair Especialista/Executivo
+1. **+ New step** > **Compose**
+2. Renomeie: **"Extrair Especialista"**
+3. Inputs (Expression):
+```
+first(split(last(split(outputs('Extrair_Dados_do_E-mail'), 'Especialista/Executivo:</strong></td><td style="padding: 10px; border: 1px solid #ddd;">')), '</td>'))
+```
+
+#### Extrair Qtde de POS
+1. **+ New step** > **Compose**
+2. Renomeie: **"Extrair Qtde POS"**
+3. Inputs (Expression):
+```
+first(split(last(split(outputs('Extrair_Dados_do_E-mail'), 'Qtde de POS:</strong></td><td style="padding: 10px; border: 1px solid #ddd;">')), '</td>'))
+```
+
+#### Extrair Possui Accelere
+1. **+ New step** > **Compose**
+2. Renomeie: **"Extrair Accelere"**
+3. Inputs (Expression):
+```
+first(split(last(split(outputs('Extrair_Dados_do_E-mail'), 'Possui Accelere:</strong></td><td style="padding: 10px; border: 1px solid #ddd;">')), '</td>'))
+```
+
+#### Extrair Filial
+1. **+ New step** > **Compose**
+2. Renomeie: **"Extrair Filial"**
+3. Inputs (Expression):
+```
+first(split(last(split(outputs('Extrair_Dados_do_E-mail'), 'Filial:</strong></td><td style="padding: 10px; border: 1px solid #ddd;">')), '</td>'))
+```
+
+#### Extrair Marca
+1. **+ New step** > **Compose**
+2. Renomeie: **"Extrair Marca"**
+3. Inputs (Expression):
+```
+first(split(last(split(outputs('Extrair_Dados_do_E-mail'), 'Marca:</strong></td><td style="padding: 10px; border: 1px solid #ddd;">')), '</td>'))
+```
+
+#### Extrair Código do Cliente
+1. **+ New step** > **Compose**
+2. Renomeie: **"Extrair Codigo Cliente"**
+3. Inputs (Expression):
+```
+first(split(last(split(outputs('Extrair_Dados_do_E-mail'), 'Código do Cliente:</strong></td><td style="padding: 10px; border: 1px solid #ddd;">')), '</td>'))
+```
+
+#### Extrair CNPJ
+1. **+ New step** > **Compose**
+2. Renomeie: **"Extrair CNPJ"**
+3. Inputs (Expression):
+```
+first(split(last(split(outputs('Extrair_Dados_do_E-mail'), 'CNPJ:</strong></td><td style="padding: 10px; border: 1px solid #ddd;">')), '</td>'))
+```
+
+#### Extrair Razão Social
+1. **+ New step** > **Compose**
+2. Renomeie: **"Extrair Razao Social"**
+3. Inputs (Expression):
+```
+first(split(last(split(outputs('Extrair_Dados_do_E-mail'), 'Razão Social:</strong></td><td style="padding: 10px; border: 1px solid #ddd;">')), '</td>'))
+```
+
+#### Extrair Nome Fantasia
+1. **+ New step** > **Compose**
+2. Renomeie: **"Extrair Nome Fantasia"**
+3. Inputs (Expression):
+```
+first(split(last(split(outputs('Extrair_Dados_do_E-mail'), 'Nome Fantasia:</strong></td><td style="padding: 10px; border: 1px solid #ddd;">')), '</td>'))
+```
+
+#### Extrair E-mail
+1. **+ New step** > **Compose**
+2. Renomeie: **"Extrair Email"**
+3. Inputs (Expression):
+```
+first(split(last(split(outputs('Extrair_Dados_do_E-mail'), 'E-mail:</strong></td><td style="padding: 10px; border: 1px solid #ddd;">')), '</td>'))
+```
+
+#### Extrair Quem Sugeriu
+1. **+ New step** > **Compose**
+2. Renomeie: **"Extrair Quem Sugeriu"**
+3. Inputs (Expression):
+```
+first(split(last(split(outputs('Extrair_Dados_do_E-mail'), 'Quem Sugeriu:</strong></td><td style="padding: 10px; border: 1px solid #ddd;">')), '</td>'))
+```
+
+#### Extrair Principal Contato
+1. **+ New step** > **Compose**
+2. Renomeie: **"Extrair Principal Contato"**
+3. Inputs (Expression):
+```
+first(split(last(split(outputs('Extrair_Dados_do_E-mail'), 'Principal Contato:</strong></td><td style="padding: 10px; border: 1px solid #ddd;">')), '</td>'))
+```
+
+#### Extrair WhatsApp
+1. **+ New step** > **Compose**
+2. Renomeie: **"Extrair WhatsApp"**
+3. Inputs (Expression):
+```
+first(split(last(split(outputs('Extrair_Dados_do_E-mail'), 'WhatsApp:</strong></td><td style="padding: 10px; border: 1px solid #ddd;">')), '</td>'))
+```
+
+#### Extrair Data de Envio
+1. **+ New step** > **Compose**
+2. Renomeie: **"Extrair Data Envio"**
+3. Inputs (Expression):
+```
+first(split(last(split(outputs('Extrair_Dados_do_E-mail'), 'Data de Envio:</strong></td><td style="padding: 10px; border: 1px solid #ddd;">')), '</td>'))
+```
+
+#### Extrair Tipo Credenciamento
+1. **+ New step** > **Compose**
+2. Renomeie: **"Extrair Tipo Credenciamento"**
+3. Inputs (Expression):
+```
+first(split(last(split(outputs('Extrair_Dados_do_E-mail'), 'Tipo Credenciamento:</strong></td><td style="padding: 10px; border: 1px solid #ddd;">')), '</td>'))
+```
+
+### Passo 7: Criar Item no SharePoint
+
+1. Clique em **"+ New step"**
+2. Procure por: **"Create item"**
+3. Selecione: **"Create item"** do **SharePoint**
+4. Configure:
+
+```
+Site Address: [Selecione seu site SharePoint]
+List Name: Controle de Credenciamento
+
+Mapeamento dos campos:
+- Title: outputs('Extrair_Razao_Social')
+- Especialista_Executivo: outputs('Extrair_Especialista')
+- EC: [Deixe vazio ou adicione se tiver no e-mail]
+- Qtde_POS: outputs('Extrair_Qtde_POS')
+- Possui_Accelere: outputs('Extrair_Accelere')
+- Filial: outputs('Extrair_Filial')
+- Marca: outputs('Extrair_Marca')
+- Codigo_Cliente: outputs('Extrair_Codigo_Cliente')
+- CNPJ: outputs('Extrair_CNPJ')
+- Razao_Social: outputs('Extrair_Razao_Social')
+- Nome_Fantasia: outputs('Extrair_Nome_Fantasia')
+- Email_Usuario: outputs('Extrair_Email')
+- Quem_Sugeriu: outputs('Extrair_Quem_Sugeriu')
+- Principal_Contato: outputs('Extrair_Principal_Contato')
+- WhatsApp: outputs('Extrair_WhatsApp')
+- Data_Envio_Docs: outputs('Extrair_Data_Envio')
+- Tipo_Credenciamento: outputs('Extrair_Tipo_Credenciamento')
+- Data_Recebimento_Docs: formatDateTime(triggerOutputs()?['body/receivedDateTime'], 'yyyy-MM-dd')
+- Hora_Recebimento_Docs: formatDateTime(triggerOutputs()?['body/receivedDateTime'], 'HH:mm:ss')
+```
+
+### Passo 8: Salvar Anexos no SharePoint
+
+1. Clique em **"+ New step"**
+2. Procure por: **"Apply to each"**
+3. Selecione: **"Apply to each"** (Control)
+4. Em **"Select an output from previous steps"**: 
+   - Selecione **"Attachments"** do **"Get email (V2)"**
+
+Dentro do loop "Apply to each":
+
+1. Clique em **"Add an action"**
+2. Procure por: **"Create file"**
+3. Selecione: **"Create file"** do **SharePoint**
+4. Configure:
+```
+Site Address: [Seu site SharePoint]
+Folder Path: /Shared Documents/Doc Permite/Anexos
+File Name: concat(outputs('Extrair_CNPJ'), '_', items('Apply_to_each')?['name'])
+File Content: items('Apply_to_each')?['contentBytes']
+```
+
+### Passo 9: Salvar e Testar
+
+1. Clique em **"Save"** (Salvar) no canto superior direito
+2. Clique em **"Test"** (Testar)
+3. Escolha **"Manually"** (Manualmente)
+4. Clique em **"Test"**
+5. Envie um e-mail de teste pela landing page
+6. Aguarde o fluxo executar
+7. Verifique se os dados foram salvos no SharePoint
+
+---
+
+## ✅ RESULTADO FINAL
+
+Quando tudo estiver funcionando:
+
+1. ✅ Usuário preenche formulário na landing page
+2. ✅ E-mail é enviado automaticamente para docpermite@per.com.br
+3. ✅ Power Automate detecta o e-mail
+4. ✅ Extrai todos os dados automaticamente
+5. ✅ Cria novo item na lista do SharePoint
+6. ✅ Salva os anexos (Termo de Adesão e Comprovante Bancário)
+7. ✅ Registra data/hora de recebimento do e-mail
+
+---
+
+## 🆘 SOLUÇÃO DE PROBLEMAS
+
+### Erro: "Expression is invalid"
+- Verifique se os nomes das ações estão corretos
+- Substitua espaços por underscores nos nomes das ações
+
+### Erro: "Item not found"
+- Verifique se as colunas do SharePoint foram criadas corretamente
+- Verifique se os nomes das colunas correspondem exatamente
+
+### Dados não são extraídos
+- Verifique se o formato do e-mail está correto (HTML com tabela)
+- Teste a expressão no Power Automate usando "Peek code"
+
+### Anexos não são salvos
+- Verifique se a pasta existe no SharePoint
+- Verifique as permissões da pasta
+
+---
+
+## 📊 MONITORAMENTO
+
+Para monitorar a automação:
+
+1. Acesse Power Automate
+2. Vá em **"My flows"**
+3. Clique no fluxo **"Doc Permite - Extração Automática"**
+4. Veja o histórico de execuções em **"28-day run history"**
+5. Clique em cada execução para ver detalhes
+
+---
+
+## 🔄 MANUTENÇÃO
+
+### Adicionar Novos Campos
+
+1. Adicione a coluna no SharePoint
+2. Adicione o campo no HTML do e-mail (script.js)
+3. Adicione uma ação "Compose" no Power Automate para extrair
+4. Adicione o campo no "Create item" do SharePoint
+
+### Alterar E-mail de Destino
+
+1. Altere no script.js (linha do sendEmail)
+2. Altere o filtro "To" no gatilho do Power Automate
+
+---
+
+## 📧 SUPORTE
+
+Se precisar de ajuda:
+- Documentação Power Automate: https://learn.microsoft.com/power-automate
+- Comunidade Power Automate: https://powerusers.microsoft.com/t5/Power-Automate-Community/ct-p/MPACommunity

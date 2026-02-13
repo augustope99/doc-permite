@@ -5,7 +5,7 @@
 const msalConfig = {
     auth: {
         clientId: '0a102342-3279-4cf1-bcf9-9bbf104a4434',
-        authority: 'https://login.microsoftonline.com/common',
+        authority: 'https://login.microsoftonline.com/1fb2191f-c87b-46f6-993f-36116dcce77b',
         redirectUri: 'https://augustope99.github.io/doc-permite/'
     }
 };

@@ -18,44 +18,50 @@
 
         <form id="docForm">
             <div class="form-grid">
-                <div class="form-group">
-                    <label for="especialista">Especialista / Executivo *</label>
-                    <input type="text" id="especialista" name="especialista" required>
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label for="especialista">Especialista / Executivo *</label>
+                        <input type="text" id="especialista" name="especialista" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="qtdePos">Qtde equipamento(s) *</label>
+                        <input type="number" id="qtdePos" name="qtdePos" min="0" placeholder="Ex: 1" required>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="qtdePos">Quantidade de equipamento(s) locado(s) *</label>
-                    <input type="number" id="qtdePos" name="qtdePos" min="0" placeholder="Ex: 1" required>
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label for="accelere">Possui Accelere? *</label>
+                        <select id="accelere" name="accelere" required>
+                            <option value="">Selecione</option>
+                            <option value="Inativo">Inativo</option>
+                            <option value="Ativo">Ativo</option>
+                            <option value="Não Apto">Não Apto</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="filial">Filial *</label>
+                        <input type="text" id="filial" name="filial" required>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="accelere">Possui Accelere? *</label>
-                    <select id="accelere" name="accelere" required>
-                        <option value="">Selecione</option>
-                        <option value="Inativo">Inativo</option>
-                        <option value="Ativo">Ativo</option>
-                        <option value="Não Apto">Não Apto</option>
-                    </select>
-                </div>
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label for="marca">Marca *</label>
+                        <select id="marca" name="marca" required>
+                            <option value="">Selecione</option>
+                            <option value="RMP">RMP</option>
+                            <option value="DISAPE">DISAPE</option>
+                            <option value="REAL DUAS RODAS">REAL DUAS RODAS</option>
+                        </select>
+                    </div>
 
-                <div class="form-group">
-                    <label for="filial">Filial *</label>
-                    <input type="text" id="filial" name="filial" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="marca">Marca *</label>
-                    <select id="marca" name="marca" required>
-                        <option value="">Selecione</option>
-                        <option value="RMP">RMP</option>
-                        <option value="DISAPE">DISAPE</option>
-                        <option value="REAL DUAS RODAS">REAL DUAS RODAS</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="codigoCliente">Código do Cliente *</label>
-                    <input type="text" id="codigoCliente" name="codigoCliente" required>
+                    <div class="form-group">
+                        <label for="codigoCliente">Código do Cliente *</label>
+                        <input type="text" id="codigoCliente" name="codigoCliente" required>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -93,14 +99,16 @@
                     <input type="text" id="logradouro" name="logradouro" required>
                 </div>
 
-                <div class="form-group">
-                    <label for="numero">Número *</label>
-                    <input type="text" id="numero" name="numero" required>
-                </div>
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label for="numero">Número *</label>
+                        <input type="text" id="numero" name="numero" required>
+                    </div>
 
-                <div class="form-group">
-                    <label for="complemento">Complemento</label>
-                    <input type="text" id="complemento" name="complemento">
+                    <div class="form-group">
+                        <label for="complemento">Complemento</label>
+                        <input type="text" id="complemento" name="complemento">
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -167,14 +175,16 @@
                     <input type="tel" id="whatsapp" name="whatsapp" placeholder="(00) 00000-0000" maxlength="15" required>
                 </div>
 
-                <div class="form-group">
-                    <label for="telefone1">Telefone 1 (DDD/Número)</label>
-                    <input type="tel" id="telefone1" name="telefone1" placeholder="(00) 0000-0000" maxlength="15">
-                </div>
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label for="telefone1">Telefone 1 (DDD/Número)</label>
+                        <input type="tel" id="telefone1" name="telefone1" placeholder="(00) 0000-0000" maxlength="15">
+                    </div>
 
-                <div class="form-group">
-                    <label for="telefone2">Telefone 2 (DDD/Número)</label>
-                    <input type="tel" id="telefone2" name="telefone2" placeholder="(00) 0000-0000" maxlength="15">
+                    <div class="form-group">
+                        <label for="telefone2">Telefone 2 (DDD/Número)</label>
+                        <input type="tel" id="telefone2" name="telefone2" placeholder="(00) 0000-0000" maxlength="15">
+                    </div>
                 </div>
 
                 <div class="partner-group">

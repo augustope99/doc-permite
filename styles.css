@@ -485,13 +485,14 @@ input[type="radio"]:checked {
     input:not([type="checkbox"]):not([type="radio"]), select {
         width: 100%; /* Garante que não ultrapasse a tela */
         max-width: 100%;
-        padding: 10px; /* Reduz o tamanho dos campos */
+        padding: 12px; /* Mantém padding confortável para toque */
         font-size: 16px; /* Tamanho padrão iOS para evitar zoom e não ficar gigante */
     }
 
+    /* Mantém 2 colunas para grupos de parceiros (CPF, Banco, Datas) para não ficar esticado */
     .partner-group {
-        grid-template-columns: 1fr;
-        gap: 12px;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
     }
 
     header h1 {
@@ -527,6 +528,13 @@ input[type="radio"]:checked {
     .table-container th, .table-container td {
         padding: 5px;
         font-size: 0.75em; /* Fonte menor na tabela para caber melhor */
+    }
+}
+
+/* Ajuste para telas muito pequenas (menores que iPhone SE antigo) */
+@media (max-width: 350px) {
+    .partner-group {
+        grid-template-columns: 1fr;
     }
 }
 

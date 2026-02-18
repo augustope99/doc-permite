@@ -24,8 +24,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="qtdePos">Qtde de POS *</label>
-                    <input type="number" id="qtdePos" name="qtdePos" min="0" required>
+                    <label for="qtdePos">Quantidade de equipamento(s) locado(s) *</label>
+                    <input type="number" id="qtdePos" name="qtdePos" min="0" placeholder="Ex: 1" required>
                 </div>
 
                 <div class="form-group">
@@ -221,6 +221,100 @@
                     </div>
                 </div>
 
+                <div class="form-group full-width section-header">
+                    <h3>Dados Bancários do Estabelecimento</h3>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="razaoSocialConta">Razão Social da Conta Corrente *</label>
+                    <input type="text" id="razaoSocialConta" name="razaoSocialConta" required>
+                </div>
+
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label for="cnpjConta">CNPJ do Titular da Conta *</label>
+                        <input type="text" id="cnpjConta" name="cnpjConta" placeholder="00.000.000/0000-00" maxlength="18" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="chavePix">Chave PIX (desta conta) *</label>
+                        <input type="text" id="chavePix" name="chavePix" required>
+                    </div>
+                </div>
+
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label for="nomeBanco">Nome do Banco *</label>
+                        <input type="text" id="nomeBanco" name="nomeBanco" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="codigoBanco">Código do banco *</label>
+                        <input type="text" id="codigoBanco" name="codigoBanco" required>
+                    </div>
+                </div>
+
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label for="agencia">Agência *</label>
+                        <input type="text" id="agencia" name="agencia" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contaDigito">Conta/Dígito *</label>
+                        <input type="text" id="contaDigito" name="contaDigito" placeholder="00000-0" required>
+                    </div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="tipoChavePix">Tipo da Chave PIX *</label>
+                    <select id="tipoChavePix" name="tipoChavePix" required>
+                        <option value="">Selecione</option>
+                        <option value="Celular">Celular</option>
+                        <option value="CNPJ">CNPJ</option>
+                        <option value="E-mail">E-mail</option>
+                        <option value="Aleatória">Aleatória</option>
+                    </select>
+                </div>
+
+                <div class="form-group full-width section-header">
+                    <h3>Condições Comerciais</h3>
+                </div>
+
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label>Antecipação Automática *</label>
+                        <div class="radio-group">
+                            <input type="radio" id="antecipacao_sim" name="antecipacaoAutomatica" value="Sim" required>
+                            <label for="antecipacao_sim">Sim</label>
+                            <input type="radio" id="antecipacao_nao" name="antecipacaoAutomatica" value="Não">
+                            <label for="antecipacao_nao">Não</label>
+                        </div>
+                    </div>
+                    <div class="form-group info-box-static">
+                        <label>Taxa Antecipação (%)</label>
+                        <p>2,35% a.m.</p>
+                    </div>
+                </div>
+
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label>Parcela Vendas? *</label>
+                        <div class="radio-group">
+                            <input type="radio" id="parcela_sim" name="parcelaVendas" value="Sim" required>
+                            <label for="parcela_sim">Sim</label>
+                            <input type="radio" id="parcela_nao" name="parcelaVendas" value="Não">
+                            <label for="parcela_nao">Não</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Custo por conta do Estabelecimento? *</label>
+                        <div class="radio-group">
+                            <input type="radio" id="porconta_sim" name="porContaEstabelecimento" value="Sim" required>
+                            <label for="porconta_sim">Sim</label>
+                            <input type="radio" id="porconta_nao" name="porContaEstabelecimento" value="Não">
+                            <label for="porconta_nao">Não</label>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <div class="date-input-wrapper">
                         <label for="dataRecebimento">Data de Envio de Docs *</label>
@@ -233,6 +327,147 @@
                     <input type="text" id="tipoCredenciamento" name="tipoCredenciamento" required>
                 </div>
 
+                <div class="info-box full-width">
+                    <h4>Taxas pactuadas para uso do SISTEMA PERmite</h4>
+                    <p>De acordo com o tipo de cartão e transação:</p>
+                    <ul>
+                        <li>Cartão Débito: Aceita</li>
+                        <li>Crédito à Vista (30 dias): 1,60%</li>
+                        <li>Crédito parcelado em 2 a 6 parcelas: 2,80%</li>
+                        <li>Crédito parcelado em 7 a 12 parcelas: 3,49%</li>
+                        <li>PIX (QR Code): R$0,99 por transação</li>
+                    </ul>
+                </div>
+        
+                <div class="info-box full-width">
+                    <h4>Equipamento(s) Locado(s)</h4>
+                    <p><strong>Marca e modelo:</strong> GERTEC GPOS720</p>
+                    <p><strong>Valor do aluguel unitário:</strong> R$79,00</p>
+                </div>
+
+                <div class="info-box full-width terms-box">
+                    <h4>Termo de Adesão ao SISTEMA PERmite</h4>
+                    <p>Pelo presente Termo de Adesão ao SISTEMA PERmite, de um lado a empresa que administra o Sistema, <strong>PERMITE PAGAMENTOS E NEGOCIOS LTDA</strong>, pessoa jurídica de direito privado, inscrita no CNPJ sob nº. 52.988.139/0001-99, com sede estabelecida à Av. Rondon Pacheco, nº. 4.600, 14º Andar, Sala 146, bairro Tibery, CEP 38.405-142, na Cidade de Uberlândia/MG, doravante denominada <strong>SUBADQUIRENTE</strong>, e, de outro lado, o estabelecimento acima qualificado, denominado <strong>ESTABELECIMENTO</strong>, neste ato representado por seu representante legal na forma de seu contrato social, têm entre si certo e ajustadas as seguintes condições:</p>
+                    <ol>
+                        <li>Neste ato, o ESTABELECIMENTO adere ao SISTEMA PERmite, concordando integral e expressamente com as cláusulas e condições dos TERMOS E CONDIÇÕES GERAIS PARA CONTRATAÇÃO DE PRODUTOS E SERVIÇOS DE PAGAMENTO “PERmite”, cuja íntegra encontra-se registrada no Cartório de Registro de Títulos e documentos da Comarca da Cidade de Uberlândia, Estado de Minas Gerais, sob o número nº 3344987, livro B262 disponível no portal da SUBADQUIRENTE.</li>
+                        <li>O sistema administrado pela SUBAQUIRENTE acima qualificada é uma solução de integração de funcionalidades de meio de pagamento que compreende: (a) captura, roteamento, transmissão e processamento de transações com cartão de débito ou crédito para os ESTABELECIMENTOS afiliados; (b) pagamento, por parte da SUBAQUIRENTE, das transações realizadas pelo ESTABELECIMENTO, na data de vencimento de cada parcela; e/ou (c) pagamento antecipado das parcelas futuras, diária e automaticamente, se essa for a opção do ESTABELECIMENTO, ou, a qualquer tempo, mediante solicitação específica, caso em que a antecipação será feita com taxa válida para a data.</li>
+                        <li>O ESTABELECIMENTO tem interesse em aceitar pagamentos com as bandeiras indicadas no quadro deste termo, estando a SUBADQUIRENTE apta a atender essa necessidade dentro da solução do SISTEMA PERmite, nas condições e percentuais também indicadas no quadro deste termo para cada uma das bandeiras e modalidades de transação, para parcelamento das vendas e para antecipação ou não do repasse de recebíveis, sendo certo que as taxas pactuadas serão deduzidas do valor total da transação em favor da SUBADQUIRENTE, conforme previsto no TERMOS E CONDIÇÕES GERAIS PARA CONTRATAÇÃO DE PRODUTOS E SERVIÇOS DE PAGAMENTO.</li>
+                        <li>O ESTABELECIMENTO está ciente que o efetivo credenciamento e a adesão ao PERmite está condicionado à sua aceitação prévia, mediante apresentação dos documentos solicitados pelo PERmite e avaliação interna de compliance.</li>
+                        <li>O ESTABELECIMENTO está ciente e concorda com os métodos adotados pela SUBADQUIRENTE para identificar e prevenir fraudes, lavagem de dinheiro e práticas ilícitas, comprometendo-se o ESTABELECIMENTO a monitorar e orientar seus funcionários, bem como cooperar e colaborar, principalmente no fornecimento das informações solicitadas, sob pena de ressarcimento à SUBADQUIRENTE e ainda descredenciamento do sistema, conforme disposto nos TERMOS E CONDIÇÕES GERAIS PARA CONTRATAÇÃO DE PRODUTOS E SERVIÇOS DE PAGAMENTO.</li>
+                        <li>A SUBADQUIRENTE disponibilizará através o seu site as informações sobre as vendas efetivamente realizadas, sobre os repasses e antecipações já efetivados, bem como sobre os agendamentos em datas futuras, que o ESTABELECIMENTO acessará com o login e a senha de seu exclusivo conhecimento.</li>
+                        <li>Segue abaixo o detalhamento da tabela de antecipação automática:</li>
+                    </ol>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th colspan="3">AUTOPEÇAS</th>
+                                    <th colspan="3">MOTOPEÇAS</th>
+                                </tr>
+                                <tr>
+                                    <th></th>
+                                    <th>ATÉ 30mil</th>
+                                    <th>DE 30K A 100K</th>
+                                    <th>ACIMA 100K</th>
+                                    <th>ATÉ 15mil</th>
+                                    <th>DE 15K A 100K</th>
+                                    <th>ACIMA 100K</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>1</td><td>4.55</td><td>4.50</td><td>4.26</td><td>4.55</td><td>4.50</td><td>4.26</td></tr>
+                                <tr><td>2</td><td>6.27</td><td>6.07</td><td>5.77</td><td>6.27</td><td>6.07</td><td>5.77</td></tr>
+                                <tr><td>3</td><td>7.37</td><td>7.17</td><td>6.87</td><td>7.37</td><td>7.17</td><td>6.87</td></tr>
+                                <tr><td>4</td><td>8.46</td><td>8.26</td><td>7.96</td><td>8.46</td><td>8.26</td><td>7.96</td></tr>
+                                <tr><td>5</td><td>9.53</td><td>9.33</td><td>9.03</td><td>9.53</td><td>9.33</td><td>9.03</td></tr>
+                                <tr><td>6</td><td>10.59</td><td>10.39</td><td>10.09</td><td>10.59</td><td>10.39</td><td>10.09</td></tr>
+                                <tr><td>7</td><td>15.12</td><td>14.72</td><td>13.72</td><td>15.12</td><td>14.72</td><td>13.72</td></tr>
+                                <tr><td>8</td><td>16.15</td><td>15.75</td><td>14.75</td><td>16.15</td><td>15.75</td><td>14.75</td></tr>
+                                <tr><td>9</td><td>17.16</td><td>16.76</td><td>15.76</td><td>17.16</td><td>16.76</td><td>15.76</td></tr>
+                                <tr><td>10</td><td>18.15</td><td>17.75</td><td>16.75</td><td>18.15</td><td>17.75</td><td>16.75</td></tr>
+                                <tr><td>11</td><td>19.12</td><td>18.72</td><td>17.72</td><td>19.12</td><td>18.72</td><td>17.72</td></tr>
+                                <tr><td>12</td><td>20.09</td><td>19.69</td><td>18.69</td><td>20.09</td><td>19.69</td><td>18.69</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label for="local">Local</label>
+                        <input type="text" id="local" name="local">
+                    </div>
+                    <div class="form-group">
+                        <label for="dia">Dia</label>
+                        <select id="dia" name="dia" required>
+                            <option value="">Dia</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                            <option value="13">13</option>
+                            <option value="14">14</option>
+                            <option value="15">15</option>
+                            <option value="16">16</option>
+                            <option value="17">17</option>
+                            <option value="18">18</option>
+                            <option value="19">19</option>
+                            <option value="20">20</option>
+                            <option value="21">21</option>
+                            <option value="22">22</option>
+                            <option value="23">23</option>
+                            <option value="24">24</option>
+                            <option value="25">25</option>
+                            <option value="26">26</option>
+                            <option value="27">27</option>
+                            <option value="28">28</option>
+                            <option value="29">29</option>
+                            <option value="30">30</option>
+                            <option value="31">31</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label for="mes">Mês</label>
+                        <select id="mes" name="mes" required>
+                            <option value="">Mês</option>
+                            <option value="Janeiro">Janeiro</option>
+                            <option value="Fevereiro">Fevereiro</option>
+                            <option value="Março">Março</option>
+                            <option value="Abril">Abril</option>
+                            <option value="Maio">Maio</option>
+                            <option value="Junho">Junho</option>
+                            <option value="Julho">Julho</option>
+                            <option value="Agosto">Agosto</option>
+                            <option value="Setembro">Setembro</option>
+                            <option value="Outubro">Outubro</option>
+                            <option value="Novembro">Novembro</option>
+                            <option value="Dezembro">Dezembro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="ano">Ano</label>
+                        <select id="ano" name="ano" required>
+                            <option value="">Ano</option>
+                            <option value="2023">2023</option>
+                            <option value="2024">2024</option>
+                            <option value="2025">2025</option>
+                            <option value="2026">2026</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="signature-section">
                     <label class="upload-label">Assinatura do Termo de Adesão *</label>
                     <div class="signature-pad-container">
@@ -240,6 +475,11 @@
                     </div>
                     <button type="button" id="clear-signature" class="submit-btn clear-btn">Limpar Assinatura</button>
                 </div>
+
+            <!-- Campos ocultos para informações do visitante -->
+            <input type="hidden" id="visitorIp" name="visitorIp">
+            <input type="hidden" id="visitorLocation" name="visitorLocation">
+            <input type="hidden" id="accessTime" name="accessTime">
 
             <div class="upload-section">
                 <label for="compBancario" class="upload-label">Comprovante bancário </label>

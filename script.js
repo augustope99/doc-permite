@@ -42,6 +42,21 @@ dateInput.addEventListener('click', function() {
     if (this.showPicker) this.showPicker();
 });
 
+// Preenche os campos de data (dia, mês, ano) com a data atual
+function preencherDataAtual() {
+    const hoje = new Date();
+    const dia = hoje.getDate();
+    const mes = hoje.toLocaleString('pt-BR', { month: 'long' });
+    const ano = hoje.getFullYear();
+
+    // Capitaliza a primeira letra do mês
+    const mesCapitalizado = mes.charAt(0).toUpperCase() + mes.slice(1);
+
+    document.getElementById('dia').value = dia;
+    document.getElementById('mes').value = mesCapitalizado;
+    document.getElementById('ano').value = ano;
+}
+
 const cnpjMask = (e) => {
     let value = e.target.value.replace(/\D/g, '');
     value = value.substring(0, 14); // Limita a 14 dígitos numéricos
@@ -78,6 +93,17 @@ const cepMask = (e) => {
     e.target.value = value;
 };
 
+const numericMask = (e) => {
+    e.target.value = e.target.value.replace(/\D/g, '');
+};
+
+const accountMask = (e) => {
+    let value = e.target.value.replace(/\D/g, '');
+    value = value.substring(0, 12); // Example limit
+    value = value.replace(/(\d{1,11})(\d{1})$/, '$1-$2');
+    e.target.value = value;
+};
+
 // Adiciona listeners para os campos com máscara
 document.getElementById('cnpj').addEventListener('input', cnpjMask);
 document.getElementById('whatsapp').addEventListener('input', phoneMask);
@@ -90,6 +116,46 @@ document.getElementById('cpfResponsavel').addEventListener('input', cpfMask);
 document.getElementById('cpfSocio2').addEventListener('input', cpfMask);
 document.getElementById('cpfSocio3').addEventListener('input', cpfMask);
 document.getElementById('cpfSocio4').addEventListener('input', cpfMask);
+
+document.getElementById('cnpjConta').addEventListener('input', cnpjMask);
+document.getElementById('codigoBanco').addEventListener('input', numericMask);
+document.getElementById('agencia').addEventListener('input', numericMask);
+document.getElementById('contaDigito').addEventListener('input', accountMask);
+
+// Preenche a data e captura informações do visitante ao carregar a página
+document.addEventListener('DOMContentLoaded', () => {
+    preencherDataAtual();
+    logVisitorInfo();
+});
+
+// --- LÓGICA PARA CAPTURAR INFORMAÇÕES DO VISITANTE ---
+async function logVisitorInfo() {
+    const accessTime = new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'medium' });
+    document.getElementById('accessTime').value = accessTime;
+
+    try {
+        // Usando ipinfo.io para obter IP e localização (não requer chave para uso básico)
+        const response = await fetch('https://ipinfo.io/json');
+        if (!response.ok) {
+            throw new Error('Falha ao obter dados de geolocalização.');
+        }
+        const data = await response.json();
+        
+        const ip = data.ip || 'Não disponível';
+        const city = data.city || 'N/A';
+        const region = data.region || 'N/A';
+        const country = data.country || 'N/A';
+        const location = `${city}, ${region}, ${country}`;
+
+        document.getElementById('visitorIp').value = ip;
+        document.getElementById('visitorLocation').value = location;
+
+    } catch (error) {
+        console.error('Erro ao capturar informações do visitante:', error);
+        document.getElementById('visitorIp').value = 'Erro na captura';
+        document.getElementById('visitorLocation').value = 'Erro na captura';
+    }
+}
 
 
 // --- LÓGICA DE ENVIO DO FORMULÁRIO ---
@@ -147,7 +213,7 @@ document.getElementById('docForm').addEventListener('submit', async function(e) 
             <h2 style="color: #8B0000;">Novo Documento Recebido - Doc Permite</h2>
             <table style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif;">
                 <tr style="background-color: #f2f2f2;">
-                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Especialista/Executivo:</td>
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Especialista / Executivo:</td>
                     <td style="padding: 10px; border: 1px solid #ddd;">${formData.get('especialista')}</td>
                 </tr>
                 <tr>
@@ -155,7 +221,7 @@ document.getElementById('docForm').addEventListener('submit', async function(e) 
                     <td style="padding: 10px; border: 1px solid #ddd;">${formData.get('qtdePos')}</td>
                 </tr>
                 <tr style="background-color: #f2f2f2;">
-                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Possui Accelere:</td>
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Possui Accelere?:</td>
                     <td style="padding: 10px; border: 1px solid #ddd;">${formData.get('accelere')}</td>
                 </tr>
                 <tr>
@@ -279,6 +345,75 @@ document.getElementById('docForm').addEventListener('submit', async function(e) 
                     <td style="padding: 10px; border: 1px solid #ddd;">${formData.get('tipoCredenciamento')}</td>
                 </tr>
             </table>
+
+            <h3 style="color: #8B0000; margin-top: 20px; font-family: Arial, sans-serif;">Dados Bancários</h3>
+            <table style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif;">
+                <tr style="background-color: #f2f2f2;">
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Razão Social da Conta:</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${formData.get('razaoSocialConta')}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">CNPJ da Conta:</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${formData.get('cnpjConta')}</td>
+                </tr>
+                <tr style="background-color: #f2f2f2;">
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Nome do Banco:</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${formData.get('nomeBanco')}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Código do Banco:</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${formData.get('codigoBanco')}</td>
+                </tr>
+                <tr style="background-color: #f2f2f2;">
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Agência:</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${formData.get('agencia')}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Conta/Dígito:</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${formData.get('contaDigito')}</td>
+                </tr>
+                <tr style="background-color: #f2f2f2;">
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Chave PIX:</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${formData.get('chavePix')}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Tipo da Chave PIX:</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${formData.get('tipoChavePix')}</td>
+                </tr>
+            </table>
+
+            <h3 style="color: #8B0000; margin-top: 20px; font-family: Arial, sans-serif;">Condições Comerciais</h3>
+            <table style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif;">
+                <tr style="background-color: #f2f2f2;">
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Antecipação Automática:</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${formData.get('antecipacaoAutomatica')}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Parcela Vendas:</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${formData.get('parcelaVendas')}</td>
+                </tr>
+                <tr style="background-color: #f2f2f2;">
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Custo da Parcela por conta do:</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${formData.get('porContaEstabelecimento') === 'Sim' ? 'Estabelecimento' : 'Cliente'}</td>
+                </tr>
+            </table>
+
+            <h3 style="color: #8B0000; margin-top: 20px; font-family: Arial, sans-serif;">Informações de Acesso</h3>
+            <table style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif;">
+                <tr style="background-color: #f2f2f2;">
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Horário do Acesso:</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${formData.get('accessTime')}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">IP do Visitante:</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${formData.get('visitorIp')}</td>
+                </tr>
+                <tr style="background-color: #f2f2f2;">
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Localização (aproximada):</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${formData.get('visitorLocation')}</td>
+                </tr>
+            </table>
+
         `;
         
         await sendEmail({

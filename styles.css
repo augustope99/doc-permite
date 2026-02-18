@@ -492,10 +492,10 @@ input[type="radio"]:checked {
         font-size: 16px; /* Tamanho padrão iOS para evitar zoom e não ficar gigante */
     }
 
-    /* Mantém 2 colunas para grupos de parceiros (CPF, Banco, Datas) para não ficar esticado */
+    /* Força coluna única para todos os grupos em telas mobile para garantir que não haja corte lateral */
     .partner-group {
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
+        grid-template-columns: 1fr;
+        gap: 12px;
     }
 
     header h1 {
@@ -531,13 +531,6 @@ input[type="radio"]:checked {
     .table-container th, .table-container td {
         padding: 5px;
         font-size: 0.75em; /* Fonte menor na tabela para caber melhor */
-    }
-}
-
-/* Ajuste para telas muito pequenas (menores que iPhone SE antigo) */
-@media (max-width: 350px) {
-    .partner-group {
-        grid-template-columns: 1fr;
     }
 }
 

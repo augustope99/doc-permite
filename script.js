@@ -13,22 +13,36 @@ function handleFileChange(event) {
 document.getElementById('compBancario').addEventListener('change', handleFileChange);
 
 // --- LÓGICA DO CAMPO DE ASSINATURA ---
-const canvas = document.getElementById('signature-pad');
-const signaturePad = new SignaturePad(canvas, {
+const canvasSubadquirente = document.getElementById('signature-pad-subadquirente');
+const signaturePadSubadquirente = new SignaturePad(canvasSubadquirente, {
+    backgroundColor: 'rgb(255, 255, 255)' // Necessário para exportar como imagem com fundo branco
+});
+
+const canvasEstabelecimento = document.getElementById('signature-pad-estabelecimento');
+const signaturePadEstabelecimento = new SignaturePad(canvasEstabelecimento, {
     backgroundColor: 'rgb(255, 255, 255)' // Necessário para exportar como imagem com fundo branco
 });
 
 function resizeCanvas() {
     const ratio =  Math.max(window.devicePixelRatio || 1, 1);
-    canvas.width = canvas.offsetWidth * ratio;
-    canvas.height = canvas.offsetHeight * ratio;
-    canvas.getContext("2d").scale(ratio, ratio);
-    signaturePad.clear(); // Limpa para redimensionar corretamente
+
+    // Redimensiona o canvas do Subadquirente
+    canvasSubadquirente.width = canvasSubadquirente.offsetWidth * ratio;
+    canvasSubadquirente.height = canvasSubadquirente.offsetHeight * ratio;
+    canvasSubadquirente.getContext("2d").scale(ratio, ratio);
+    signaturePadSubadquirente.clear();
+
+    // Redimensiona o canvas do Estabelecimento
+    canvasEstabelecimento.width = canvasEstabelecimento.offsetWidth * ratio;
+    canvasEstabelecimento.height = canvasEstabelecimento.offsetHeight * ratio;
+    canvasEstabelecimento.getContext("2d").scale(ratio, ratio);
+    signaturePadEstabelecimento.clear();
 }
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
 
-document.getElementById('clear-signature').addEventListener('click', () => signaturePad.clear());
+document.getElementById('clear-signature-subadquirente').addEventListener('click', () => signaturePadSubadquirente.clear());
+document.getElementById('clear-signature-estabelecimento').addEventListener('click', () => signaturePadEstabelecimento.clear());
 
 // Garante que o campo de Qtde POS aceite apenas números
 document.getElementById('qtdePos').addEventListener('input', function(e) {
@@ -104,13 +118,79 @@ const accountMask = (e) => {
     e.target.value = value;
 };
 
+// --- FUNÇÕES DE VALIDAÇÃO ---
+
+/**
+ * Valida um CNPJ usando o algoritmo do Módulo 11.
+ * @param {string} cnpj - O CNPJ para validar (pode conter máscara).
+ * @returns {boolean} - True se o CNPJ for válido, false caso contrário.
+ */
+function isValidCNPJ(cnpj) {
+    cnpj = cnpj.replace(/[^\d]+/g, '');
+
+    if (cnpj === '') return false;
+    if (cnpj.length !== 14) return false;
+
+    // Elimina CNPJs invalidos conhecidos (todos os dígitos iguais)
+    if (/^(\d)\1+$/.test(cnpj)) return false;
+
+    // Valida DVs
+    let tamanho = cnpj.length - 2;
+    let numeros = cnpj.substring(0, tamanho);
+    let digitos = cnpj.substring(tamanho);
+    let soma = 0;
+    let pos = tamanho - 7;
+    for (let i = tamanho; i >= 1; i--) {
+        soma += parseInt(numeros.charAt(tamanho - i), 10) * pos--;
+        if (pos < 2) pos = 9;
+    }
+    let resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+    if (resultado !== parseInt(digitos.charAt(0), 10)) return false;
+
+    tamanho = tamanho + 1;
+    numeros = cnpj.substring(0, tamanho);
+    soma = 0;
+    pos = tamanho - 7;
+    for (let i = tamanho; i >= 1; i--) {
+        soma += parseInt(numeros.charAt(tamanho - i), 10) * pos--;
+        if (pos < 2) pos = 9;
+    }
+    resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+    if (resultado !== parseInt(digitos.charAt(1), 10)) return false;
+
+    return true;
+}
+
+/**
+ * Manipulador de evento para validar o campo CNPJ quando o usuário sai dele.
+ * @param {Event} event - O evento de blur.
+ */
+function handleCnpjValidation(event) {
+    const input = event.target;
+    const cnpj = input.value;
+
+    if (cnpj.length === 0) { // Não valida campo vazio
+        input.classList.remove('invalid-field');
+        return;
+    }
+
+    if (!isValidCNPJ(cnpj)) {
+        input.classList.add('invalid-field');
+        alert(`O CNPJ "${cnpj}" é inválido. Por favor, verifique.`);
+    } else {
+        input.classList.remove('invalid-field');
+    }
+}
+
 // Adiciona listeners para os campos com máscara
 document.getElementById('cnpj').addEventListener('input', cnpjMask);
+document.getElementById('cnpj').addEventListener('blur', handleCnpjValidation);
 document.getElementById('whatsapp').addEventListener('input', phoneMask);
 document.getElementById('telefone1').addEventListener('input', phoneMask);
 document.getElementById('telefone2').addEventListener('input', phoneMask);
 
 document.getElementById('cep').addEventListener('input', cepMask);
+document.getElementById('cep').addEventListener('blur', searchCep); // Adiciona o listener para buscar o CEP
 
 document.getElementById('cpfResponsavel').addEventListener('input', cpfMask);
 document.getElementById('cpfSocio2').addEventListener('input', cpfMask);
@@ -118,9 +198,68 @@ document.getElementById('cpfSocio3').addEventListener('input', cpfMask);
 document.getElementById('cpfSocio4').addEventListener('input', cpfMask);
 
 document.getElementById('cnpjConta').addEventListener('input', cnpjMask);
+document.getElementById('cnpjConta').addEventListener('blur', handleCnpjValidation);
 document.getElementById('codigoBanco').addEventListener('input', numericMask);
 document.getElementById('agencia').addEventListener('input', numericMask);
 document.getElementById('contaDigito').addEventListener('input', accountMask);
+
+// --- SINCRONIZAÇÃO DE CAMPOS DE ASSINATURA ---
+const filialInput = document.getElementById('filial');
+const especialistaInput = document.getElementById('especialista');
+
+filialInput.addEventListener('input', () => {
+    document.getElementById('filialAssinatura').value = filialInput.value;
+});
+
+especialistaInput.addEventListener('input', () => {
+    document.getElementById('especialistaAssinatura').value = especialistaInput.value;
+});
+
+// --- LÓGICA DO CONTADOR DE CARACTERES ---
+const chavePixInput = document.getElementById('chavePix');
+const chavePixCounter = document.getElementById('chavePixCounter');
+
+chavePixInput.addEventListener('input', () => {
+    const count = chavePixInput.value.length;
+    chavePixCounter.textContent = `(${count} caracteres)`;
+});
+
+// --- LÓGICA PARA BUSCAR ENDEREÇO PELO CEP ---
+async function searchCep() {
+    const cepInput = document.getElementById('cep');
+    let cep = cepInput.value.replace(/\D/g, ''); // Remove non-digits
+
+    // Limpa os campos de endereço antes de buscar
+    document.getElementById('logradouro').value = '';
+    document.getElementById('bairro').value = '';
+    document.getElementById('cidade').value = '';
+    document.getElementById('uf').value = '';
+
+    if (cep.length !== 8) {
+        // Se o CEP não tem 8 dígitos, não faz a busca
+        return;
+    }
+
+    try {
+        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        const data = await response.json();
+
+        if (data.erro) {
+            alert('CEP não encontrado ou inválido.');
+            return;
+        }
+
+        // Preenche os campos com os dados retornados pela API
+        document.getElementById('logradouro').value = data.logradouro;
+        document.getElementById('bairro').value = data.bairro;
+        document.getElementById('cidade').value = data.localidade; // ViaCEP usa 'localidade' para cidade
+        document.getElementById('uf').value = data.uf;             // ViaCEP usa 'uf' para estado
+
+    } catch (error) {
+        console.error('Erro ao buscar CEP:', error);
+        alert('Erro ao buscar CEP. Verifique sua conexão ou tente novamente.');
+    }
+}
 
 // Preenche a data e captura informações do visitante ao carregar a página
 document.addEventListener('DOMContentLoaded', () => {
@@ -183,10 +322,30 @@ document.getElementById('docForm').addEventListener('submit', async function(e) 
     loading.classList.remove('hidden');
     message.classList.add('hidden');
     
+    // --- VALIDAÇÃO DE CNPJ ANTES DO ENVIO ---
+    const cnpjInput = document.getElementById('cnpj');
+    if (!isValidCNPJ(cnpjInput.value)) {
+        loading.classList.add('hidden');
+        alert('O CNPJ principal é inválido. Por favor, corrija antes de enviar.');
+        cnpjInput.focus();
+        cnpjInput.classList.add('invalid-field');
+        return;
+    }
+
+    const cnpjContaInput = document.getElementById('cnpjConta');
+    if (!isValidCNPJ(cnpjContaInput.value)) {
+        loading.classList.add('hidden');
+        alert('O CNPJ do titular da conta é inválido. Por favor, corrija antes de enviar.');
+        cnpjContaInput.focus();
+        cnpjContaInput.classList.add('invalid-field');
+        return;
+    }
+    // --- FIM DA VALIDAÇÃO ---
+
     try {
         // Validação da assinatura
-        if (signaturePad.isEmpty()) {
-            alert('Por favor, forneça a assinatura do termo de adesão.');
+        if (signaturePadSubadquirente.isEmpty() || signaturePadEstabelecimento.isEmpty()) {
+            alert('Por favor, preencha ambas as assinaturas (SUBADQUIRENTE e ESTABELECIMENTO).');
             loading.classList.add('hidden');
             return; // Interrompe o envio
         }
@@ -194,19 +353,27 @@ document.getElementById('docForm').addEventListener('submit', async function(e) 
         // Captura os valores dos checkboxes de segmento
         const segmentos = formData.getAll('segmento').join(', ') || 'Nenhum';
 
-        // Cria o anexo da assinatura
-        const signatureBase64 = signaturePad.toDataURL('image/png').split(',')[1];
-        const signatureAttachment = {
+        // Cria o anexo da assinatura do Subadquirente
+        const signatureSubadquirenteBase64 = signaturePadSubadquirente.toDataURL('image/png').split(',')[1];
+        const signatureSubadquirenteAttachment = {
             '@odata.type': '#microsoft.graph.fileAttachment',
-            name: `assinatura_termo_${formData.get('cnpj') || 'cliente'}.png`,
-            contentBytes: signatureBase64
+            name: `assinatura_subadquirente_${formData.get('cnpj') || 'cliente'}.png`,
+            contentBytes: signatureSubadquirenteBase64
+        };
+
+        // Cria o anexo da assinatura do Estabelecimento
+        const signatureEstabelecimentoBase64 = signaturePadEstabelecimento.toDataURL('image/png').split(',')[1];
+        const signatureEstabelecimentoAttachment = {
+            '@odata.type': '#microsoft.graph.fileAttachment',
+            name: `assinatura_estabelecimento_${formData.get('cnpj') || 'cliente'}.png`,
+            contentBytes: signatureEstabelecimentoBase64
         };
 
         // Pega o outro arquivo (comprovante)
         const compFile = document.getElementById('compBancario')?.files[0];
         const compAttachment = await createFileAttachment(compFile);
         
-        const attachments = [signatureAttachment];
+        const attachments = [signatureSubadquirenteAttachment, signatureEstabelecimentoAttachment];
         if (compAttachment) attachments.push(compAttachment);
         
         const emailBody = `
@@ -398,6 +565,26 @@ document.getElementById('docForm').addEventListener('submit', async function(e) 
                 </tr>
             </table>
 
+            <h3 style="color: #8B0000; margin-top: 20px; font-family: Arial, sans-serif;">Dados da Assinatura</h3>
+            <table style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif;">
+                <tr style="background-color: #f2f2f2;">
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Filial (Assinatura):</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${formData.get('filialAssinatura')}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Especialista PER (Assinatura):</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${formData.get('especialistaAssinatura')}</td>
+                </tr>
+                <tr style="background-color: #f2f2f2;">
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Local:</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${formData.get('local')}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Data da Assinatura:</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${formData.get('dia')} de ${formData.get('mes')} de ${formData.get('ano')}</td>
+                </tr>
+            </table>
+
             <h3 style="color: #8B0000; margin-top: 20px; font-family: Arial, sans-serif;">Informações de Acesso</h3>
             <table style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif;">
                 <tr style="background-color: #f2f2f2;">
@@ -428,7 +615,8 @@ document.getElementById('docForm').addEventListener('submit', async function(e) 
         message.classList.add('success');
         message.textContent = 'E-mail enviado com sucesso para docpermite@per.com.br!';
         form.reset();
-        signaturePad.clear();
+        signaturePadSubadquirente.clear();
+        signaturePadEstabelecimento.clear();
         document.querySelectorAll('.file-name').forEach(el => el.textContent = '');
         
         setTimeout(() => {

@@ -236,7 +236,7 @@
                         <input type="text" id="cnpjConta" name="cnpjConta" placeholder="00.000.000/0000-00" maxlength="18" required>
                     </div>
                     <div class="form-group">
-                        <label for="chavePix">Chave PIX (desta conta) *</label>
+                        <label for="chavePix">Chave PIX (desta conta) * <span id="chavePixCounter" class="char-counter"></span></label>
                         <input type="text" id="chavePix" name="chavePix" required>
                     </div>
                 </div>
@@ -398,46 +398,29 @@
                     </div>
                 </div>
 
+                <!-- Campos de Filial e Especialista PER (Assinatura) -->
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label for="filialAssinatura">Filial</label>
+                        <input type="text" id="filialAssinatura" name="filialAssinatura" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="especialistaAssinatura">Especialista PER</label>
+                        <input type="text" id="especialistaAssinatura" name="especialistaAssinatura" required>
+                    </div>
+                </div>
+
+                <!-- Campos de Local, Dia, Mês, Ano -->
                 <div class="partner-group">
                     <div class="form-group">
                         <label for="local">Local</label>
-                        <input type="text" id="local" name="local">
+                        <input type="text" id="local" name="local" required>
                     </div>
                     <div class="form-group">
                         <label for="dia">Dia</label>
                         <select id="dia" name="dia" required>
                             <option value="">Dia</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                            <option value="6">6</option>
-                            <option value="7">7</option>
-                            <option value="8">8</option>
-                            <option value="9">9</option>
-                            <option value="10">10</option>
-                            <option value="11">11</option>
-                            <option value="12">12</option>
-                            <option value="13">13</option>
-                            <option value="14">14</option>
-                            <option value="15">15</option>
-                            <option value="16">16</option>
-                            <option value="17">17</option>
-                            <option value="18">18</option>
-                            <option value="19">19</option>
-                            <option value="20">20</option>
-                            <option value="21">21</option>
-                            <option value="22">22</option>
-                            <option value="23">23</option>
-                            <option value="24">24</option>
-                            <option value="25">25</option>
-                            <option value="26">26</option>
-                            <option value="27">27</option>
-                            <option value="28">28</option>
-                            <option value="29">29</option>
-                            <option value="30">30</option>
-                            <option value="31">31</option>
+                            <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option>
                         </select>
                     </div>
                 </div>
@@ -446,38 +429,34 @@
                         <label for="mes">Mês</label>
                         <select id="mes" name="mes" required>
                             <option value="">Mês</option>
-                            <option value="Janeiro">Janeiro</option>
-                            <option value="Fevereiro">Fevereiro</option>
-                            <option value="Março">Março</option>
-                            <option value="Abril">Abril</option>
-                            <option value="Maio">Maio</option>
-                            <option value="Junho">Junho</option>
-                            <option value="Julho">Julho</option>
-                            <option value="Agosto">Agosto</option>
-                            <option value="Setembro">Setembro</option>
-                            <option value="Outubro">Outubro</option>
-                            <option value="Novembro">Novembro</option>
-                            <option value="Dezembro">Dezembro</option>
+                            <option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option><option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option><option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option><option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="ano">Ano</label>
                         <select id="ano" name="ano" required>
                             <option value="">Ano</option>
-                            <option value="2023">2023</option>
-                            <option value="2024">2024</option>
-                            <option value="2025">2025</option>
-                            <option value="2026">2026</option>
+                            <option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option>
                         </select>
                     </div>
                 </div>
 
+                <!-- Assinatura SUBADQUIRENTE -->
                 <div class="signature-section">
-                    <label class="upload-label">Assinatura do Termo de Adesão *</label>
+                    <label class="upload-label">(Assinatura Digital) SUBADQUIRENTE *</label>
                     <div class="signature-pad-container">
-                        <canvas id="signature-pad"></canvas>
+                        <canvas id="signature-pad-subadquirente"></canvas>
                     </div>
-                    <button type="button" id="clear-signature" class="submit-btn clear-btn">Limpar Assinatura</button>
+                    <button type="button" id="clear-signature-subadquirente" class="submit-btn clear-btn">Limpar Assinatura</button>
+                </div>
+
+                <!-- Assinatura ESTABELECIMENTO -->
+                <div class="signature-section">
+                    <label class="upload-label">(Assinatura Digital) ESTABELECIMENTO *</label>
+                    <div class="signature-pad-container">
+                        <canvas id="signature-pad-estabelecimento"></canvas>
+                    </div>
+                    <button type="button" id="clear-signature-estabelecimento" class="submit-btn clear-btn">Limpar Assinatura</button>
                 </div>
 
             <!-- Campos ocultos para informações do visitante -->

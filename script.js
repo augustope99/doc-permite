@@ -182,9 +182,68 @@ function handleCnpjValidation(event) {
     }
 }
 
+/**
+ * Manipulador de evento para o campo CNPJ principal, que valida e busca dados da empresa.
+ * @param {Event} event - O evento de blur.
+ */
+async function handleMainCnpjBlur(event) {
+    const input = event.target;
+    const cnpj = input.value;
+    const cleanedCnpj = cnpj.replace(/\D/g, '');
+
+    // 1. Limpa a classe de erro
+    input.classList.remove('invalid-field');
+
+    if (cnpj.length === 0) {
+        return;
+    }
+
+    // 2. Valida o CNPJ
+    if (!isValidCNPJ(cnpj)) {
+        input.classList.add('invalid-field');
+        alert(`O CNPJ "${cnpj}" é inválido. Por favor, verifique.`);
+        return; // Para a execução se for inválido
+    }
+
+    // 3. Se for válido, busca os dados na API
+    input.disabled = true;
+    const originalPlaceholder = input.placeholder;
+    input.placeholder = "Buscando dados...";
+
+    try {
+        const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cleanedCnpj}`);
+        if (!response.ok) {
+            throw new Error('CNPJ não encontrado ou API indisponível.');
+        }
+        const data = await response.json();
+
+        // Preenche os campos de endereço e dados da empresa
+        document.getElementById('razaoSocial').value = data.razao_social || '';
+        document.getElementById('nomeFantasia').value = data.nome_fantasia || '';
+        document.getElementById('cep').value = data.cep || '';
+        document.getElementById('logradouro').value = data.logradouro || '';
+        document.getElementById('numero').value = data.numero || '';
+        document.getElementById('complemento').value = data.complemento || '';
+        document.getElementById('bairro').value = data.bairro || '';
+        document.getElementById('cidade').value = data.municipio || '';
+        document.getElementById('uf').value = data.uf || '';
+        
+        // Aplica a máscara no CEP que foi preenchido
+        const cepInput = document.getElementById('cep');
+        if (cepInput.value) cepMask({ target: cepInput });
+
+    } catch (error) {
+        console.error('Erro ao buscar dados do CNPJ:', error);
+        alert(`Não foi possível preencher os dados automaticamente. Por favor, preencha manualmente.\nMotivo: ${error.message}`);
+    } finally {
+        input.disabled = false;
+        input.placeholder = originalPlaceholder;
+    }
+}
+
 // Adiciona listeners para os campos com máscara
 document.getElementById('cnpj').addEventListener('input', cnpjMask);
-document.getElementById('cnpj').addEventListener('blur', handleCnpjValidation);
+document.getElementById('cnpj').addEventListener('blur', handleMainCnpjBlur);
 document.getElementById('whatsapp').addEventListener('input', phoneMask);
 document.getElementById('telefone1').addEventListener('input', phoneMask);
 document.getElementById('telefone2').addEventListener('input', phoneMask);

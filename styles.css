@@ -465,11 +465,16 @@ input[type="radio"]:checked {
 @media (max-width: 768px) {
     body {
         padding: 10px;
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
     }
 
     .container {
-        padding: 15px 10px;
+        padding: 20px 15px;
         width: 100%;
+        max-width: 100%;
     }
 
     .form-grid {
@@ -479,6 +484,7 @@ input[type="radio"]:checked {
 
     input:not([type="checkbox"]):not([type="radio"]), select {
         width: 100%; /* Garante que não ultrapasse a tela */
+        max-width: 100%;
         padding: 10px; /* Reduz o tamanho dos campos */
         font-size: 16px; /* Tamanho padrão iOS para evitar zoom e não ficar gigante */
     }
@@ -499,6 +505,10 @@ input[type="radio"]:checked {
         font-size: 1.1em;
     }
 
+    .info-box {
+        padding: 15px;
+    }
+
     .checkbox-group {
         flex-wrap: wrap; /* Permite que os checkboxes quebrem linha se necessário */
         gap: 10px;
@@ -511,6 +521,12 @@ input[type="radio"]:checked {
 
     .table-container {
         overflow-x: auto; /* Permite rolagem horizontal da tabela em telas pequenas */
+        -webkit-overflow-scrolling: touch; /* Rolagem suave no iOS */
+    }
+
+    .table-container th, .table-container td {
+        padding: 5px;
+        font-size: 0.75em; /* Fonte menor na tabela para caber melhor */
     }
 }
 

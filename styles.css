@@ -465,17 +465,19 @@ input[type="radio"]:checked {
 
 @media (max-width: 768px) {
     body {
-        padding: 10px;
-        padding-top: env(safe-area-inset-top);
-        padding-bottom: env(safe-area-inset-bottom);
-        padding-left: env(safe-area-inset-left);
-        padding-right: env(safe-area-inset-right);
+        padding: 0; /* Removemos todo o padding do body para evitar erros de cálculo */
     }
 
     .container {
-        padding: 20px 15px;
-        width: auto; /* Ajusta automaticamente ao espaço disponível, evitando cortes */
+        width: 100%;
         margin: 0;
+        border-radius: 0; /* Removemos a borda arredondada para um visual de tela cheia no celular */
+        /* O container agora gerencia todo o espaçamento, incluindo as áreas seguras do iPhone */
+        padding: 20px 15px;
+        padding-top: calc(20px + env(safe-area-inset-top));
+        padding-bottom: calc(20px + env(safe-area-inset-bottom));
+        padding-left: calc(15px + env(safe-area-inset-left));
+        padding-right: calc(15px + env(safe-area-inset-right));
     }
 
     .form-grid {

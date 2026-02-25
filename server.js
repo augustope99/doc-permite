@@ -26,9 +26,9 @@ app.get('/api/validacao/:cnpj', async (req, res) => {
     return res.status(400).json({ status: "error", message: "CNPJ inválido." });
   }
 
-  if (!process.env.QITECH_API_KEY) {
-    console.error("ERRO: QITECH_API_KEY não configurada no .env");
-    return res.status(500).json({ status: "error", message: "API KEY não configurada no servidor." });
+  if (!process.env.QITECH_CLIENT_ID || !process.env.QITECH_CLIENT_SECRET) {
+    console.error("ERRO: QITECH_CLIENT_ID ou QITECH_CLIENT_SECRET não configurados no .env");
+    return res.status(500).json({ status: "error", message: "Credenciais do servidor não configuradas." });
   }
   
   // The QI Tech API expects the CNPJ to be formatted in the query parameter.
@@ -40,11 +40,16 @@ app.get('/api/validacao/:cnpj', async (req, res) => {
   try{
     console.log("Consultando status da análise:", formattedCnpj);
 
+    // Create the Basic Auth token from client_id and client_secret, as required by the query endpoint.
+    const auth = Buffer.from(
+        `${process.env.QITECH_CLIENT_ID}:${process.env.QITECH_CLIENT_SECRET}`
+    ).toString('base64');
+
     const response = await axios.get(url, {
       headers: {
-        'Authorization': `Basic ${process.env.QITECH_API_KEY}`
-        // 'Content-Type' header is removed from GET requests to prevent servers
-        // from incorrectly expecting a body, which causes the 'Invalid JSON' error.
+        'Authorization': `Basic ${auth}`,
+        // Per your example, we are including Content-Type. The primary fix is the Authorization method.
+        'Content-Type': 'application/json'
       },
       timeout: 10000
     });

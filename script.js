@@ -491,7 +491,7 @@ async function validarComplice(cnpj) {
     while (tentativas < maxTentativas) {
       try {
         const response = await Promise.race([
-          fetch(`http://localhost:3000/api/complice/${cnpj}`),
+          fetch(`http://localhost:3000/api/validacao/${cnpj}`),
           new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 8000)) // Timeout de 8s
         ]);
 

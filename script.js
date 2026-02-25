@@ -182,6 +182,22 @@ function handleCnpjValidation(event) {
     }
 }
 
+// --- LÓGICA DE VALIDAÇÃO COMPLICE (QI TECH) ---
+let usuarioAprovado = false;
+let consultaEmAndamento = false;
+let ultimoCnpjConsultado = null;
+const CACHE_DURATION = 10 * 60 * 1000; // 10 minutos em milissegundos
+
+function mostrarLoader(mensagem) {
+    const loader = document.getElementById('complice-loader');
+    loader.querySelector('.complice-loader-content p').textContent = mensagem;
+    loader.classList.remove('hidden');
+}
+
+function esconderLoader() {
+    document.getElementById('complice-loader').classList.add('hidden');
+}
+
 /**
  * Manipulador de evento para o campo CNPJ principal, que valida e busca dados da empresa.
  * @param {Event} event - O evento de blur.
@@ -204,6 +220,9 @@ async function handleMainCnpjBlur(event) {
         alert(`O CNPJ "${cnpj}" é inválido. Por favor, verifique.`);
         return; // Para a execução se for inválido
     }
+
+    // Dispara a validação Complice
+    validarComplice(cleanedCnpj);
 
     // 3. Se for válido, busca os dados na API
     input.disabled = true;
@@ -242,7 +261,27 @@ async function handleMainCnpjBlur(event) {
 }
 
 // Adiciona listeners para os campos com máscara
-document.getElementById('cnpj').addEventListener('input', cnpjMask);
+document.getElementById('cnpj').addEventListener('input', (e) => {
+    // Aplica a máscara primeiro
+    cnpjMask(e);
+
+    // Reseta o status de aprovação se o CNPJ for alterado
+    if (usuarioAprovado) {
+        console.log('CNPJ alterado. Status de aprovação reiniciado.');
+        usuarioAprovado = false;
+        const submitBtn = document.getElementById('main-submit-btn');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.style.cursor = 'not-allowed';
+            submitBtn.style.opacity = '0.6';
+        }
+        // Limpa popups anteriores
+        const popup = document.getElementById('complice-popup');
+        if (popup && !popup.classList.contains('hidden')) {
+            popup.classList.add('hidden');
+        }
+    }
+});
 document.getElementById('cnpj').addEventListener('blur', handleMainCnpjBlur);
 document.getElementById('whatsapp').addEventListener('input', phoneMask);
 document.getElementById('telefone1').addEventListener('input', phoneMask);
@@ -324,6 +363,11 @@ async function searchCep() {
 document.addEventListener('DOMContentLoaded', () => {
     preencherDataAtual();
     logVisitorInfo();
+    injectHtmlElements();
+    const submitBtn = document.getElementById('main-submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.style.cursor = 'not-allowed';
+    submitBtn.style.opacity = '0.6';
 });
 
 // --- LÓGICA PARA CAPTURAR INFORMAÇÕES DO VISITANTE ---
@@ -355,6 +399,137 @@ async function logVisitorInfo() {
     }
 }
 
+// --- FUNÇÕES DA VALIDAÇÃO COMPLICE ---
+
+function injectHtmlElements() {
+    // Injeta o loader
+    const loaderHTML = `
+        <div id="complice-loader" class="complice-overlay hidden">
+            <div class="complice-loader-content">
+                <div class="spinner"></div>
+                <p>🔎 Consultando Complice...</p>
+            </div>
+        </div>`;
+    document.body.insertAdjacentHTML('beforeend', loaderHTML);
+
+    // Injeta o popup
+    const popupHTML = `
+        <div id="complice-popup" class="complice-overlay hidden">
+            <div id="complice-popup-content" class="complice-popup-content">
+                <div class="icon"></div>
+                <p class="message"></p>
+            </div>
+        </div>`;
+    document.body.insertAdjacentHTML('beforeend', popupHTML);
+
+    // Adiciona ID ao botão de submit
+    const submitButton = document.querySelector('#docForm .submit-btn');
+    if (submitButton) {
+        submitButton.id = 'main-submit-btn';
+    }
+
+    // Adiciona evento para fechar o popup
+    document.getElementById('complice-popup').addEventListener('click', () => {
+        document.getElementById('complice-popup').classList.add('hidden');
+    });
+}
+
+function mostrarPopup(texto, tipo) {
+    const popup = document.getElementById('complice-popup');
+    const popupContent = document.getElementById('complice-popup-content');
+    const iconEl = popupContent.querySelector('.icon');
+    const messageEl = popupContent.querySelector('.message');
+
+    popupContent.className = 'complice-popup-content'; // Reseta classes
+    popupContent.classList.add(tipo);
+    messageEl.textContent = texto;
+
+    switch (tipo) {
+        case 'sucesso':
+            iconEl.textContent = '✅';
+            break;
+        case 'erro':
+            iconEl.textContent = '❌';
+            break;
+        case 'alerta':
+            iconEl.textContent = '⚠️';
+            break;
+    }
+
+    popup.classList.remove('hidden');
+}
+
+async function validarComplice(cnpj) {
+    if (consultaEmAndamento || cnpj === ultimoCnpjConsultado) return;
+
+    consultaEmAndamento = true;
+    mostrarLoader('🔎 Consultando Complice...');
+    const submitBtn = document.getElementById('main-submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.style.cursor = 'not-allowed';
+    submitBtn.style.opacity = '0.6';
+
+    // 1. Checar Cache
+    const cacheKey = `complice_${cnpj}`;
+    const cachedItem = localStorage.getItem(cacheKey);
+    if (cachedItem) {
+        const { status, timestamp } = JSON.parse(cachedItem);
+        if (Date.now() - timestamp < CACHE_DURATION) {
+            console.log('Resultado do Complice obtido do cache.');
+            handleCompliceResponse({ status }, cnpj);
+            return; // Sai da função usando o cache
+        }
+    }
+
+    // 2. Consultar API com Retry e Timeout
+    let tentativas = 0;
+    const maxTentativas = 3;
+    while (tentativas < maxTentativas) {
+        try {
+            const response = await Promise.race([
+                fetch(`http://localhost:3000/api/complice/${cnpj}`),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 8000)) // Timeout de 8s
+            ]);
+
+            if (!response.ok) throw new Error(`Erro na resposta do servidor: ${response.statusText}`);
+            
+            const data = await response.json();
+            handleCompliceResponse(data, cnpj);
+            return; // Sucesso, sai do loop
+
+        } catch (error) {
+            tentativas++;
+            console.error(`Tentativa ${tentativas} falhou: ${error.message}`);
+            if (tentativas >= maxTentativas) {
+                handleCompliceResponse({ status: 'error' }, cnpj);
+            } else {
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Espera 1s para tentar de novo
+            }
+        }
+    }
+}
+
+function handleCompliceResponse(data, cnpj) {
+    const submitBtn = document.getElementById('main-submit-btn');
+    esconderLoader();
+    consultaEmAndamento = false;
+    ultimoCnpjConsultado = cnpj;
+    localStorage.setItem(`complice_${cnpj}`, JSON.stringify({ status: data.status, timestamp: Date.now() }));
+
+    if (data.status === 'approved') {
+        usuarioAprovado = true;
+        mostrarPopup('✅ CNPJ aprovado na consulta Complice!', 'sucesso');
+        submitBtn.disabled = false;
+        submitBtn.style.cursor = 'pointer';
+        submitBtn.style.opacity = '1';
+    } else if (data.status === 'rejected') {
+        usuarioAprovado = false;
+        mostrarPopup('❌ CNPJ não aprovado na consulta Complice.', 'erro');
+    } else { // 'error'
+        usuarioAprovado = false;
+        mostrarPopup('⚠️ Erro ao consultar o serviço de validação. Tente novamente mais tarde.', 'alerta');
+    }
+}
 
 // --- LÓGICA DE ENVIO DO FORMULÁRIO ---
 
@@ -378,6 +553,15 @@ document.getElementById('docForm').addEventListener('submit', async function(e) 
     const loading = document.getElementById('loading');
     const message = document.getElementById('message');
     
+    // Validação de aprovação Complice
+    if (!usuarioAprovado) {
+        mostrarPopup('❌ Envio bloqueado. O CNPJ principal não foi aprovado na consulta.', 'erro');
+        const cnpjInput = document.getElementById('cnpj');
+        cnpjInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        cnpjInput.focus();
+        return;
+    }
+
     loading.classList.remove('hidden');
     message.classList.add('hidden');
     

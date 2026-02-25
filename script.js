@@ -479,6 +479,8 @@ async function validarComplice(cnpj) {
     try {
         mostrarPopup("Analisando usuário no Complice...", "loading");
 
+        // Esta URL aponta para o seu servidor Node.js local.
+        // Quando você hospedar o backend na nuvem, deverá alterar este endereço.
         const response = await fetch(
             `http://localhost:3000/api/validacao/${cnpj}?nocache=` + Date.now()
         );
@@ -486,11 +488,11 @@ async function validarComplice(cnpj) {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
         const data = await response.json();
-        console.log("Resposta API:", data);
+        console.log("Resposta do nosso backend (via QI Tech):", data);
 
-        // O backend agora retorna { status: "raw_qitech_status" }
-        // A lógica abaixo interpreta o status bruto da QI Tech
-        if (data.status === "approved" || data.status === "automatically_approved" || data.status === "manually_approved") {
+        // A lógica abaixo interpreta o `analysis_status` retornado pela QI Tech
+        // Status de aprovação
+        if (data.status === "automatically_approved" || data.status === "manually_approved") {
             mostrarPopup("Usuário aprovado no Complice ✅", "success");
             if (submitBtn) { // Habilita o botão
                 submitBtn.disabled = false;
@@ -500,12 +502,14 @@ async function validarComplice(cnpj) {
             return true;
         }
 
-        if (data.status === "rejected" || data.status === "blocked") {
+        // Status de reprovação
+        if (data.status === "automatically_reproved" || data.status === "manually_reproved") {
             mostrarPopup("Usuário NÃO aprovado ❌", "error");
             return false;
         }
 
-        if (data.status === "pending" || data.status === "in_queue" || data.status === "analyzing") {
+        // Status de pendência ou análise manual
+        if (data.status === "in_manual_analysis" || data.status === "in_queue" || data.status === "pending") {
             mostrarPopup("Usuário em análise no Complice ⏳", "warning");
             return false;
         }

@@ -210,7 +210,10 @@ async function handleMainCnpjBlur(event) {
     }
 
     // Dispara a validação Complice
-    usuarioAprovado = await validarComplice(cleanedCnpj);
+    // O backend agora espera um analysis_id.
+    // Se o fluxo for consultar pelo CNPJ (assumindo que o ID foi gerado como CNPJ_TIMESTAMP ou similar),
+    // ou se o usuário deve colar o ID no campo, a variável enviada deve ser adequada.
+    usuarioAprovado = await validarComplice(cleanedCnpj); 
 
     // 3. Se for válido, busca os dados na API
     input.disabled = true;
@@ -461,7 +464,7 @@ function mostrarPopup(texto, tipo) {
   popup.classList.remove('hidden');
 }
 
-async function validarComplice(cnpj) {
+async function validarComplice(analysisIdOrCnpj) {
     if (consultaEmAndamento) return false;
     consultaEmAndamento = true;
     const submitBtn = document.getElementById('main-submit-btn');
@@ -477,7 +480,7 @@ async function validarComplice(cnpj) {
         mostrarPopup("Analisando usuário no Complice...", "loading");
 
         const response = await fetch(
-            `https://SEU-SERVIDOR/api/validacao/${cnpj}?nocache=` + Date.now()
+            `http://localhost:3000/api/validacao/${analysisIdOrCnpj}?nocache=` + Date.now()
         );
 
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -485,7 +488,9 @@ async function validarComplice(cnpj) {
         const data = await response.json();
         console.log("Resposta API:", data);
 
-        if (data.status === "approved") {
+        // O backend agora retorna { analysis_id, status, created_at, ... }
+        // Mapeando os status da QI Tech para a lógica do frontend
+        if (data.status === "approved" || data.status === "automatically_approved" || data.status === "manually_approved") {
             mostrarPopup("Usuário aprovado no Complice ✅", "success");
             if (submitBtn) { // Habilita o botão
                 submitBtn.disabled = false;
@@ -495,12 +500,12 @@ async function validarComplice(cnpj) {
             return true;
         }
 
-        if (data.status === "rejected") {
+        if (data.status === "rejected" || data.status === "blocked") {
             mostrarPopup("Usuário NÃO aprovado ❌", "error");
             return false;
         }
 
-        if (data.status === "pending") {
+        if (data.status === "pending" || data.status === "in_queue" || data.status === "analyzing") {
             mostrarPopup("Usuário em análise no Complice ⏳", "warning");
             return false;
         }

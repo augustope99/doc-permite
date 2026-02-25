@@ -62,13 +62,15 @@ app.get('/api/validacao/:cnpj', async (req, res) => {
 
     const s=response.data.analysis_status;
 
-    if(s=="automatically_approved"||s=="manually_approved")
-      return res.json({status:"approved"});
-
-    if(s=="in_queue"||s=="pending")
-      return res.json({status:"pending"});
-
-    return res.json({status:"rejected"});
+    if (s === 'automatically_approved' || s === 'manually_approved') {
+      return res.json({ status: 'approved' });
+    }
+    else if (s === 'in_queue' || s === 'pending') {
+      return res.json({ status: 'pending' });
+    }
+    else {
+      return res.json({ status: 'rejected' });
+    }
 
   }
   catch(e){

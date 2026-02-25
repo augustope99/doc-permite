@@ -185,17 +185,6 @@ function handleCnpjValidation(event) {
 // --- LÓGICA DE VALIDAÇÃO COMPLICE (QI TECH) ---
 let usuarioAprovado = false;
 let consultaEmAndamento = false;
-let ultimoCnpjConsultado = null;
-
-function mostrarLoader(mensagem) {
-    const loader = document.getElementById('complice-loader');
-    loader.querySelector('.complice-loader-content p').textContent = mensagem;
-    loader.classList.remove('hidden');
-}
-
-function esconderLoader() {
-    document.getElementById('complice-loader').classList.add('hidden');
-}
 
 /**
  * Manipulador de evento para o campo CNPJ principal, que valida e busca dados da empresa.
@@ -221,7 +210,7 @@ async function handleMainCnpjBlur(event) {
     }
 
     // Dispara a validação Complice
-    validarComplice(cleanedCnpj);
+    usuarioAprovado = await validarComplice(cleanedCnpj);
 
     // 3. Se for válido, busca os dados na API
     input.disabled = true;
@@ -437,94 +426,95 @@ function injectHtmlElements() {
 }
 
 function mostrarPopup(texto, tipo) {
-    const popup = document.getElementById('complice-popup');
-    const popupContent = document.getElementById('complice-popup-content');
-    const iconEl = popupContent.querySelector('.icon');
-    const messageEl = popupContent.querySelector('.message');
+  const popup = document.getElementById('complice-popup');
+  const popupContent = document.getElementById('complice-popup-content');
+  const iconEl = popupContent.querySelector('.icon');
+  const messageEl = popupContent.querySelector('.message');
 
-    popupContent.className = 'complice-popup-content'; // Reseta classes
-    popupContent.classList.add(tipo);
-    messageEl.textContent = texto;
+  popupContent.className = 'complice-popup-content'; // Reseta classes
+  messageEl.textContent = texto;
+  iconEl.innerHTML = ''; // Limpa o ícone anterior (importante para o spinner)
 
-    switch (tipo) {
-        case 'sucesso':
-            iconEl.textContent = '✅';
-            break;
-        case 'erro':
-            iconEl.textContent = '❌';
-            break;
-        case 'alerta':
-            iconEl.textContent = '⚠️';
-            break;
-    }
+  switch (tipo) {
+    case 'success':
+      popupContent.classList.add('sucesso');
+      iconEl.textContent = '✅';
+      break;
+    case 'error':
+      popupContent.classList.add('erro');
+      iconEl.textContent = '❌';
+      break;
+    case 'warning': // Para 'pending'
+      popupContent.classList.add('alerta');
+      iconEl.textContent = '⏳';
+      break;
+    case 'loading':
+      popupContent.classList.add('alerta');
+      iconEl.innerHTML = '<div class="spinner"></div>';
+      break;
+    default: // Fallback para 'alerta'
+      popupContent.classList.add('alerta');
+      iconEl.textContent = '⚠️';
+      break;
+  }
 
-    popup.classList.remove('hidden');
+  popup.classList.remove('hidden');
 }
 
 async function validarComplice(cnpj) {
-  if (consultaEmAndamento || cnpj === ultimoCnpjConsultado) return;
+    if (consultaEmAndamento) return false;
+    consultaEmAndamento = true;
+    const submitBtn = document.getElementById('main-submit-btn');
 
-  consultaEmAndamento = true;
-  mostrarLoader('🔎 Consultando Complice...');
-  const submitBtn = document.getElementById('main-submit-btn');
-  submitBtn.disabled = true;
-  submitBtn.style.cursor = 'not-allowed';
-  submitBtn.style.opacity = '0.6';
+    // Garante que o botão esteja desabilitado durante a análise
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.style.cursor = 'not-allowed';
+        submitBtn.style.opacity = '0.6';
+    }
 
-  try {
-    // Consultar API com Retry e Timeout
-    let tentativas = 0;
-    const maxTentativas = 3;
-    while (tentativas < maxTentativas) {
-      try {
-        const response = await Promise.race([
-          fetch(`https://SEU-SERVIDOR/api/validacao/${cnpj}`),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 8000)) // Timeout de 8s
-        ]);
+    try {
+        mostrarPopup("Analisando usuário no Complice...", "loading");
 
-        if (!response.ok) throw new Error(`Erro na resposta do servidor: ${response.statusText}`);
+        const response = await fetch(
+            `https://SEU-SERVIDOR/api/validacao/${cnpj}?nocache=` + Date.now()
+        );
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
         const data = await response.json();
-        handleCompliceResponse(data, cnpj);
-        return; // Sucesso, sai do loop (o bloco finally será executado)
+        console.log("Resposta API:", data);
 
-      } catch (error) {
-        tentativas++;
-        console.error(`Tentativa ${tentativas} falhou: ${error.message}`);
-        if (tentativas >= maxTentativas) {
-          throw error; // Lança o erro para o catch externo após todas as tentativas
+        if (data.status === "approved") {
+            mostrarPopup("Usuário aprovado no Complice ✅", "success");
+            if (submitBtn) { // Habilita o botão
+                submitBtn.disabled = false;
+                submitBtn.style.cursor = 'pointer';
+                submitBtn.style.opacity = '1';
+            }
+            return true;
         }
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Espera 1s para tentar de novo
-      }
+
+        if (data.status === "rejected") {
+            mostrarPopup("Usuário NÃO aprovado ❌", "error");
+            return false;
+        }
+
+        if (data.status === "pending") {
+            mostrarPopup("Usuário em análise no Complice ⏳", "warning");
+            return false;
+        }
+
+        mostrarPopup("Erro ao consultar o serviço de validação ⚠️", "error");
+        return false;
+
+    } catch (error) {
+        console.error("Erro na validação Complice:", error);
+        mostrarPopup("Erro ao consultar o serviço de validação ⚠️", "error");
+        return false;
+    } finally {
+        consultaEmAndamento = false;
     }
-  } catch (error) {
-    // Erro final após todas as tentativas
-    handleCompliceResponse({ status: 'error' }, cnpj);
-  } finally {
-    // Este bloco SEMPRE será executado, garantindo que a UI não trave
-    esconderLoader();
-    consultaEmAndamento = false;
-  }
-}
-
-function handleCompliceResponse(data, cnpj) {
-  const submitBtn = document.getElementById('main-submit-btn');
-  // A lógica de esconder loader e resetar flag foi movida para o bloco 'finally'
-  ultimoCnpjConsultado = cnpj;
-
-  if (data.status === 'approved') {
-    usuarioAprovado = true;
-    mostrarPopup('✅ CNPJ aprovado na consulta Complice!', 'sucesso');
-    submitBtn.disabled = false;
-    submitBtn.style.cursor = 'pointer';
-    submitBtn.style.opacity = '1';
-  } else if (data.status === 'rejected') {
-    usuarioAprovado = false;
-    mostrarPopup('❌ CNPJ não aprovado na consulta Complice.', 'erro');
-  } else { // 'error'
-    usuarioAprovado = false;
-    mostrarPopup('⚠️ Erro ao consultar o serviço de validação. Tente novamente mais tarde.', 'alerta');
-  }
 }
 
 // --- LÓGICA DE ENVIO DO FORMULÁRIO ---

@@ -478,6 +478,10 @@ tbody tr:nth-child(even) {
     transition: opacity 0.3s ease;
 }
 
+.complice-overlay.hidden {
+    display: none !important;
+}
+
 .complice-loader-content {
     text-align: center;
     color: #fff;

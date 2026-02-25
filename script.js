@@ -402,6 +402,9 @@ async function logVisitorInfo() {
 // --- FUNÇÕES DA VALIDAÇÃO COMPLICE ---
 
 function injectHtmlElements() {
+    // Evita criar elementos duplicados se já existirem na página
+    if (document.getElementById('complice-loader')) return;
+
     // Injeta o loader
     const loaderHTML = `
         <div id="complice-loader" class="complice-overlay hidden">
@@ -460,75 +463,82 @@ function mostrarPopup(texto, tipo) {
 }
 
 async function validarComplice(cnpj) {
-    if (consultaEmAndamento || cnpj === ultimoCnpjConsultado) return;
+  if (consultaEmAndamento || cnpj === ultimoCnpjConsultado) return;
 
-    consultaEmAndamento = true;
-    mostrarLoader('🔎 Consultando Complice...');
-    const submitBtn = document.getElementById('main-submit-btn');
-    submitBtn.disabled = true;
-    submitBtn.style.cursor = 'not-allowed';
-    submitBtn.style.opacity = '0.6';
+  consultaEmAndamento = true;
+  mostrarLoader('🔎 Consultando Complice...');
+  const submitBtn = document.getElementById('main-submit-btn');
+  submitBtn.disabled = true;
+  submitBtn.style.cursor = 'not-allowed';
+  submitBtn.style.opacity = '0.6';
 
+  try {
     // 1. Checar Cache
     const cacheKey = `complice_${cnpj}`;
     const cachedItem = localStorage.getItem(cacheKey);
     if (cachedItem) {
-        const { status, timestamp } = JSON.parse(cachedItem);
-        if (Date.now() - timestamp < CACHE_DURATION) {
-            console.log('Resultado do Complice obtido do cache.');
-            handleCompliceResponse({ status }, cnpj);
-            return; // Sai da função usando o cache
-        }
+      const { status, timestamp } = JSON.parse(cachedItem);
+      if (Date.now() - timestamp < CACHE_DURATION) {
+        console.log('Resultado do Complice obtido do cache.');
+        handleCompliceResponse({ status }, cnpj);
+        return; // Sai da função (o bloco finally será executado)
+      }
     }
 
     // 2. Consultar API com Retry e Timeout
     let tentativas = 0;
     const maxTentativas = 3;
     while (tentativas < maxTentativas) {
-        try {
-            const response = await Promise.race([
-                fetch(`http://localhost:3000/api/complice/${cnpj}`),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 8000)) // Timeout de 8s
-            ]);
+      try {
+        const response = await Promise.race([
+          fetch(`http://localhost:3000/api/complice/${cnpj}`),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 8000)) // Timeout de 8s
+        ]);
 
-            if (!response.ok) throw new Error(`Erro na resposta do servidor: ${response.statusText}`);
-            
-            const data = await response.json();
-            handleCompliceResponse(data, cnpj);
-            return; // Sucesso, sai do loop
+        if (!response.ok) throw new Error(`Erro na resposta do servidor: ${response.statusText}`);
 
-        } catch (error) {
-            tentativas++;
-            console.error(`Tentativa ${tentativas} falhou: ${error.message}`);
-            if (tentativas >= maxTentativas) {
-                handleCompliceResponse({ status: 'error' }, cnpj);
-            } else {
-                await new Promise(resolve => setTimeout(resolve, 1000)); // Espera 1s para tentar de novo
-            }
+        const data = await response.json();
+        handleCompliceResponse(data, cnpj);
+        return; // Sucesso, sai do loop (o bloco finally será executado)
+
+      } catch (error) {
+        tentativas++;
+        console.error(`Tentativa ${tentativas} falhou: ${error.message}`);
+        if (tentativas >= maxTentativas) {
+          throw error; // Lança o erro para o catch externo após todas as tentativas
         }
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Espera 1s para tentar de novo
+      }
     }
+  } catch (error) {
+    // Erro final após todas as tentativas
+    handleCompliceResponse({ status: 'error' }, cnpj);
+  } finally {
+    // Este bloco SEMPRE será executado, garantindo que a UI não trave
+    esconderLoader();
+    consultaEmAndamento = false;
+  }
 }
 
 function handleCompliceResponse(data, cnpj) {
-    const submitBtn = document.getElementById('main-submit-btn');
-    esconderLoader();
-    consultaEmAndamento = false;
-    ultimoCnpjConsultado = cnpj;
-    localStorage.setItem(`complice_${cnpj}`, JSON.stringify({ status: data.status, timestamp: Date.now() }));
+  const submitBtn = document.getElementById('main-submit-btn');
+  // A lógica de esconder loader e resetar flag foi movida para o bloco 'finally'
+  ultimoCnpjConsultado = cnpj;
+  localStorage.setItem(`complice_${cnpj}`, JSON.stringify({ status: data.status, timestamp: Date.now() }));
 
-    if (data.status === 'approved') {
-        usuarioAprovado = true;
-        mostrarPopup('✅ CNPJ aprovado na consulta Complice!', 'sucesso');
-        submitBtn.disabled = false;
-        submitBtn.style.cursor = 'pointer';
-        submitBtn.style.opacity = '1';
-    } else if (data.status === 'rejected') {
-        usuarioAprovado = false;
-        mostrarPopup('❌ CNPJ não aprovado na consulta Complice.', 'erro');
-    } else { // 'error'
-        usuarioAprovado = false;
-        mostrarPopup('⚠️ Erro ao consultar o serviço de validação. Tente novamente mais tarde.', 'alerta');
-    }
+  if (data.status === 'approved') {
+    usuarioAprovado = true;
+    mostrarPopup('✅ CNPJ aprovado na consulta Complice!', 'sucesso');
+    submitBtn.disabled = false;
+    submitBtn.style.cursor = 'pointer';
+    submitBtn.style.opacity = '1';
+  } else if (data.status === 'rejected') {
+    usuarioAprovado = false;
+    mostrarPopup('❌ CNPJ não aprovado na consulta Complice.', 'erro');
+  } else { // 'error'
+    usuarioAprovado = false;
+    mostrarPopup('⚠️ Erro ao consultar o serviço de validação. Tente novamente mais tarde.', 'alerta');
+  }
 }
 
 // --- LÓGICA DE ENVIO DO FORMULÁRIO ---

@@ -186,7 +186,6 @@ function handleCnpjValidation(event) {
 let usuarioAprovado = false;
 let consultaEmAndamento = false;
 let ultimoCnpjConsultado = null;
-const CACHE_DURATION = 10 * 60 * 1000; // 10 minutos em milissegundos
 
 function mostrarLoader(mensagem) {
     const loader = document.getElementById('complice-loader');
@@ -473,19 +472,7 @@ async function validarComplice(cnpj) {
   submitBtn.style.opacity = '0.6';
 
   try {
-    // 1. Checar Cache
-    const cacheKey = `complice_${cnpj}`;
-    const cachedItem = localStorage.getItem(cacheKey);
-    if (cachedItem) {
-      const { status, timestamp } = JSON.parse(cachedItem);
-      if (Date.now() - timestamp < CACHE_DURATION) {
-        console.log('Resultado do Complice obtido do cache.');
-        handleCompliceResponse({ status }, cnpj);
-        return; // Sai da função (o bloco finally será executado)
-      }
-    }
-
-    // 2. Consultar API com Retry e Timeout
+    // Consultar API com Retry e Timeout
     let tentativas = 0;
     const maxTentativas = 3;
     while (tentativas < maxTentativas) {
@@ -524,7 +511,6 @@ function handleCompliceResponse(data, cnpj) {
   const submitBtn = document.getElementById('main-submit-btn');
   // A lógica de esconder loader e resetar flag foi movida para o bloco 'finally'
   ultimoCnpjConsultado = cnpj;
-  localStorage.setItem(`complice_${cnpj}`, JSON.stringify({ status: data.status, timestamp: Date.now() }));
 
   if (data.status === 'approved') {
     usuarioAprovado = true;

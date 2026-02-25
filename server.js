@@ -11,9 +11,11 @@ app.use(cors({
 }));
 
 function formatarCNPJ(cnpj) {
-  return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+  return cnpj.replace(
+    /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
+    "$1.$2.$3/$4-$5"
+  );
 }
-
 
 app.get('/api/validacao/:cnpj', async (req, res) => {
 
@@ -46,20 +48,35 @@ app.get('/api/validacao/:cnpj', async (req, res) => {
       }
     );
 
-
     const data = response.data;
 
-    if (!data || data.length === 0) {
+    console.log("Resposta completa QI Tech:");
+    console.log(JSON.stringify(data, null, 2));
+
+    let analysisStatus = null;
+
+    // Caso venha array direto
+    if (Array.isArray(data) && data.length > 0) {
+      analysisStatus = data[0]?.analysis_status;
+    }
+
+    // Caso venha objeto com data[]
+    else if (data.data && data.data.length > 0) {
+      analysisStatus = data.data[0]?.analysis_status;
+    }
+
+    // Caso venha objeto simples
+    else if (data.analysis_status) {
+      analysisStatus = data.analysis_status;
+    }
+
+    if (!analysisStatus) {
       return res.json({
         status: "not_found"
       });
     }
 
-
-    const analysisStatus = data[0].analysis_status;
-
     console.log("Status retornado:", analysisStatus);
-
 
     let statusFinal = "pending";
 
@@ -77,18 +94,24 @@ app.get('/api/validacao/:cnpj', async (req, res) => {
       statusFinal = "rejected";
     }
 
+    if (
+      analysisStatus === "in_queue" ||
+      analysisStatus === "pending"
+    ) {
+      statusFinal = "pending";
+    }
 
     res.json({
       status: statusFinal,
       raw_status: analysisStatus
     });
 
-
   } catch (error) {
 
     if (error.response) {
 
-      console.log("Erro QI Tech:", error.response.data);
+      console.log("Erro QI Tech:");
+      console.log(JSON.stringify(error.response.data, null, 2));
 
       return res.status(error.response.status).json({
         status: "error",
@@ -106,7 +129,6 @@ app.get('/api/validacao/:cnpj', async (req, res) => {
   }
 
 });
-
 
 app.listen(PORT, () => {
   console.log("Servidor rodando porta", PORT);

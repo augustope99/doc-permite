@@ -14,53 +14,60 @@ app.get('/', (req,res)=>{
   res.send('API QI TECH ONLINE');
 });
 
+function formatarCNPJ(cnpj) {
+  // Formats a raw 14-digit CNPJ string into XX.XXX.XXX/XXXX-XX
+  return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+}
+
 app.get('/api/validacao/:cnpj', async (req, res) => {
-  // Este endpoint agora espera um 'analysis_id' no lugar do CNPJ.
-  const { cnpj: analysis_id } = req.params;
+  const cleanedCnpj = req.params.cnpj.replace(/\D/g, '');
   
-  if (!analysis_id) {
-    return res.status(400).json({ status: "error", message: "analysis_id é obrigatório." });
+  if (cleanedCnpj.length !== 14) {
+    return res.status(400).json({ status: "error", message: "CNPJ inválido." });
   }
 
   if (!process.env.QITECH_API_KEY) {
     console.error("ERRO: QITECH_API_KEY não configurada no .env");
     return res.status(500).json({ status: "error", message: "API KEY não configurada no servidor." });
   }
-
-  // Usando 'Bearer' conforme solicitado para este endpoint.
-  const axiosConfig = {
-    headers:{
-      'Authorization': `Bearer ${process.env.QITECH_API_KEY}`,
-      "Content-Type":"application/json"
-    },
-    timeout: 10000
-  };
-
-  const url = `${process.env.QITECH_BASE_URL}/onboarding/analyses/${analysis_id}`;
-  console.log(`Consultando status da análise: ${analysis_id}`);
+  
+  // The QI Tech API expects the CNPJ to be formatted in the query parameter.
+  const formattedCnpj = formatarCNPJ(cleanedCnpj);
+  
+  const url = `${process.env.QITECH_BASE_URL}/onboarding/legal_persons?document_number=${formattedCnpj}`;
+  console.log("URL:", url); // Debug log as requested
 
   try{
-    const response = await axios.get(url, axiosConfig);
+    console.log("Consultando status da análise:", formattedCnpj);
+
+    const response = await axios.get(url, {
+      headers: {
+        'Authorization': `Basic ${process.env.QITECH_API_KEY}`
+        // 'Content-Type' header is removed from GET requests to prevent servers
+        // from incorrectly expecting a body, which causes the 'Invalid JSON' error.
+      },
+      timeout: 10000
+    });
     
-    // Extraindo e retornando os campos solicitados.
-    const { id, status, created_at, updated_at } = response.data;
-    
+    // Use optional chaining and provide a default 'not_found' status if the CNPJ doesn't exist in QI Tech.
+    const status = response.data.data[0]?.analysis_status || "not_found";
+
+    console.log(`Status para ${formattedCnpj}: ${status}`);
+
+    // Return the raw status to the frontend.
     res.json({
-      analysis_id: id,
-      status,
-      created_at,
-      updated_at
+      status: status
     });
 
   }
   catch(e){
-    const errorMessage = e.response?.data || e.message;
-    const errorStatus = e.response?.status || 500;
-    console.error(`Erro ao consultar análise ${analysis_id}:`, errorMessage);
-    res.status(errorStatus).json({ 
-      status: "error", 
-      message: "Falha ao consultar a análise.", 
-      details: errorMessage 
+    console.log("Erro ao consultar análise", formattedCnpj, ":",
+      e.response?.data || e.message
+    );
+
+    res.status(500).json({
+      status: "error",
+      erro: "Erro ao consultar QI Tech"
     });
   }
 });

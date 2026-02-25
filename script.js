@@ -464,7 +464,7 @@ function mostrarPopup(texto, tipo) {
   popup.classList.remove('hidden');
 }
 
-async function validarComplice(analysisIdOrCnpj) {
+async function validarComplice(cnpj) {
     if (consultaEmAndamento) return false;
     consultaEmAndamento = true;
     const submitBtn = document.getElementById('main-submit-btn');
@@ -480,7 +480,7 @@ async function validarComplice(analysisIdOrCnpj) {
         mostrarPopup("Analisando usuário no Complice...", "loading");
 
         const response = await fetch(
-            `http://localhost:3000/api/validacao/${analysisIdOrCnpj}?nocache=` + Date.now()
+            `http://localhost:3000/api/validacao/${cnpj}?nocache=` + Date.now()
         );
 
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -488,8 +488,8 @@ async function validarComplice(analysisIdOrCnpj) {
         const data = await response.json();
         console.log("Resposta API:", data);
 
-        // O backend agora retorna { analysis_id, status, created_at, ... }
-        // Mapeando os status da QI Tech para a lógica do frontend
+        // O backend agora retorna { status: "raw_qitech_status" }
+        // A lógica abaixo interpreta o status bruto da QI Tech
         if (data.status === "approved" || data.status === "automatically_approved" || data.status === "manually_approved") {
             mostrarPopup("Usuário aprovado no Complice ✅", "success");
             if (submitBtn) { // Habilita o botão

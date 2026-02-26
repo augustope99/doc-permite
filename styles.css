@@ -7,6 +7,10 @@
     box-sizing: border-box;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #1f1f1f 0%, #3c0000 100%);
@@ -17,6 +21,7 @@ body {
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
+    accent-color: #8B0000;
     overflow-x: hidden; /* Impede rolagem horizontal indesejada */
 }
 
@@ -47,6 +52,7 @@ header h1 {
     margin-bottom: 8px;
     line-height: 1.2;
     word-wrap: break-word;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 header p {
@@ -296,31 +302,96 @@ tbody tr:nth-child(even) {
    6. ASSINATURA E UPLOAD
    ========================================= */
 .signature-section {
+    background: #1a1a1a;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 20px;
     margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.3s;
+}
+
+.signature-section:focus-within {
+    box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.5);
+}
+
+.signature-section label {
+    margin-bottom: 10px;
 }
 
 .signature-pad-container {
-    border: 1px solid #555;
+    border: 2px dashed #555;
     border-radius: 8px;
     height: 180px;
     background-color: #fff;
     overflow: hidden;
     width: 100%;
+    position: relative;
+    transition: border-color 0.3s;
+}
+
+.signature-pad-container:hover {
+    border-color: #DC143C;
 }
 
 .signature-pad-container canvas {
     width: 100%;
     height: 100%;
     touch-action: none;
+    border-radius: 6px; /* Match parent's radius */
 }
 
 .upload-section {
+    position: relative;
     margin: 20px 0;
-    padding: 20px;
+    padding: 0; /* Removido para o label controlar o preenchimento */
     border: 2px dashed #8B0000;
     border-radius: 8px;
     background: #1a1a1a;
     text-align: center;
+    overflow: hidden; /* Garante que nada vaze */
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.upload-section:hover {
+    background-color: #2a2a2a;
+    border-color: #DC143C;
+}
+
+/* Esconde o input padrão, mas o mantém funcional e sobreposto */
+.upload-section input[type="file"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 10;
+}
+
+/* Estiliza o label para ser a área visual clicável */
+.upload-section label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 20px;
+    color: #ccc;
+    margin-bottom: 0; /* Sobrescreve o padrão */
+}
+
+/* Adiciona um ícone de upload */
+.upload-section label::before {
+    content: '📤';
+    font-size: 2.5em;
+    margin-bottom: 15px;
+    transition: transform 0.3s;
+}
+
+.upload-section:hover label::before {
+    transform: scale(1.1) translateY(-5px);
 }
 
 .button-container {
@@ -337,6 +408,40 @@ tbody tr:nth-child(even) {
     font-size: 1.1em;
     font-weight: 600;
     cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+}
+
+.submit-btn:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(220, 20, 60, 0.4);
+}
+
+.submit-btn:active:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(220, 20, 60, 0.4);
+}
+
+.submit-btn:disabled {
+    background: #555;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.submit-btn.clear-btn {
+    background: #444;
+    font-size: 0.9em;
+    font-weight: 500;
+    padding: 10px 15px;
+    margin-top: 15px;
+    width: auto;
+    min-width: 0;
+    align-self: flex-end; /* Alinha o botão à direita */
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.submit-btn.clear-btn:hover {
+    background: #555;
+    color: #fff;
 }
 
 /* =========================================
@@ -358,6 +463,13 @@ tbody tr:nth-child(even) {
 .message.success { background: #d4edda; color: #155724; }
 .message.error { background: #f8d7da; color: #721c24; }
 .char-counter { font-size: 0.8em; color: #ccc; margin-left: 5px; }
+.file-name {
+    padding-bottom: 15px;
+    font-size: 0.9em;
+    color: #28a745; /* Verde para indicar sucesso */
+    font-weight: 500;
+    min-height: 1.2em; /* Evita que o layout pule quando o texto aparece */
+}
 
 
 /* =========================================
@@ -372,7 +484,7 @@ tbody tr:nth-child(even) {
         max-width: 900px;
         margin: 0 auto;
         border-radius: 12px;
-        box-shadow: 0 10px 40px rgba(139, 0, 0, 0.4);
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5), 0 10px 20px rgba(139, 0, 0, 0.3);
         padding: 40px;
     }
 
@@ -446,7 +558,6 @@ tbody tr:nth-child(even) {
     .sidebar-right { right: 40px; }
 }
 .char-counter {
-    font-size: 0.8em;
     font-weight: normal;
     color: #cccccc;
     margin-left: 8px;

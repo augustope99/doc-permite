@@ -409,7 +409,7 @@ function checkCNPJAccess() {
     statusDiv.textContent = 'Consultando dados...';
     statusDiv.style.color = '#777';
 
-    fetch("http://localhost:5000/consultar-cnpj", {
+    fetch("http://192.168.0.15:5000/consultar-cnpj", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cnpj: cnpjValue })

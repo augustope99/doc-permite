@@ -33,7 +33,6 @@ Clique em **"+ Add column"** e crie cada coluna abaixo:
 | Especialista_Executivo | Single line of text | - |
 | EC | Single line of text | - |
 | Qtde_POS | Number | - |
-| Possui_Accelere | Choice | Opções: Inativo, Ativo, Não Apto |
 | Filial | Single line of text | - |
 | Marca | Choice | Opções: RMP, DISAPE, REAL DUAS RODAS |
 | Codigo_Cliente | Single line of text | - |

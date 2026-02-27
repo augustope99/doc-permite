@@ -296,30 +296,18 @@ document.addEventListener('DOMContentLoaded', () => {
     preencherDataAtual();
     logVisitorInfo();
 
-    // --- LÓGICA DE OCULTAÇÃO INICIAL ---
-    // Encontra o CNPJ e agrupa tudo que vem depois dele
-    const cnpjInput = document.getElementById('cnpj');
-    if (cnpjInput) {
-        const formGroup = cnpjInput.closest('.form-group');
-        if (formGroup && formGroup.parentElement) {
-            const wrapper = document.createElement('div');
-            wrapper.id = 'form-details-wrapper';
-
-            const parent = formGroup.parentElement; // .form-grid
-            let nextSibling = formGroup.nextElementSibling;
-            const elementsToMove = [];
-
-            // Coleta todos os irmãos seguintes ao grupo do CNPJ
-            while (nextSibling) {
-                elementsToMove.push(nextSibling);
-                nextSibling = nextSibling.nextElementSibling;
+    // Listeners para Validação Inicial
+    const cnpjCheckInput = document.getElementById('cnpjCheck');
+    if (cnpjCheckInput) {
+        cnpjCheckInput.addEventListener('input', cnpjMask);
+        cnpjCheckInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                checkCNPJAccess();
             }
-
-            // Move para dentro do wrapper
-            elementsToMove.forEach(el => wrapper.appendChild(el));
-            parent.appendChild(wrapper);
-        }
+        });
     }
+    document.getElementById('btnConsultarCNPJ')?.addEventListener('click', checkCNPJAccess);
 
     // Ativa a animação de revelação para os elementos do formulário
     revelarFormulario();
@@ -328,12 +316,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('cnpj').addEventListener('input', (e) => {
         cnpjMask(e);
     });
+    // Adiciona o listener para consultar o CNPJ quando o usuário sai do campo
+    document.getElementById('cnpj').addEventListener('blur', consultarDadosReceita);
+
     document.getElementById('whatsapp').addEventListener('input', phoneMask);
     document.getElementById('telefone1').addEventListener('input', phoneMask);
     document.getElementById('telefone2').addEventListener('input', phoneMask);
     document.getElementById('cep').addEventListener('input', cepMask);
     document.getElementById('cep').addEventListener('blur', searchCep);
     
+    document.getElementById('cpfResponsavel').addEventListener('blur', consultarCPF);
     document.getElementById('cpfResponsavel').addEventListener('input', cpfMask);
     document.getElementById('cpfSocio2').addEventListener('input', cpfMask);
     document.getElementById('cpfSocio3').addEventListener('input', cpfMask);
@@ -397,6 +389,148 @@ async function logVisitorInfo() {
         document.getElementById('visitorLocation').value = `${data.city}, ${data.region}, ${data.country}`;
         document.getElementById('accessTime').value = new Date().toLocaleString();
     } catch (e) { console.error('Erro IP', e); }
+}
+
+// --- CONSULTA CNPJ VIA API ---
+
+function checkCNPJAccess() {
+    const cnpjInput = document.getElementById('cnpjCheck');
+    const statusDiv = document.getElementById('cnpj-check-status');
+    const restrictedContent = document.getElementById('restricted-content');
+    const cnpjValue = cnpjInput.value;
+    const cleanedCnpj = cnpjValue.replace(/\D/g, '');
+
+    if (cleanedCnpj.length !== 14) {
+        statusDiv.textContent = 'CNPJ incompleto.';
+        statusDiv.style.color = 'red';
+        return;
+    }
+
+    statusDiv.textContent = 'Consultando dados...';
+    statusDiv.style.color = '#777';
+
+    fetch("http://localhost:5000/consultar-cnpj", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cnpj: cnpjValue })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'APROVADO') {
+            statusDiv.textContent = '✅ Acesso Aprovado!';
+            statusDiv.style.color = 'green';
+            
+            // Libera o formulário e preenche o segundo campo
+            restrictedContent.classList.remove('hidden');
+            const mainCnpj = document.getElementById('cnpj');
+            if (mainCnpj) {
+                mainCnpj.value = cnpjValue;
+                mainCnpj.dispatchEvent(new Event('blur')); // Dispara validação do campo original se houver
+            }
+            revelarFormulario(); // Reinicia observadores de animação
+        } else {
+            statusDiv.textContent = '⛔ Acesso Negado: ' + (data.status === 'not_found' ? 'CNPJ não encontrado' : data.status);
+            statusDiv.style.color = 'red';
+            restrictedContent.classList.add('hidden');
+        }
+    })
+    .catch(error => {
+        console.error("Erro:", error);
+        statusDiv.textContent = '❌ Erro de conexão.';
+        statusDiv.style.color = 'red';
+    });
+}
+
+async function consultarDadosReceita(event) {
+    const cnpjInput = event.target;
+    const cnpjStatusDiv = document.getElementById('cnpj-status');
+    const cnpjValue = cnpjInput.value.replace(/\D/g, '');
+    
+    if (cnpjValue.length !== 14) {
+        if (cnpjStatusDiv) cnpjStatusDiv.textContent = '';
+        return;
+    }
+
+    if (cnpjStatusDiv) {
+        cnpjStatusDiv.textContent = '🔍 Buscando dados na Receita...';
+        cnpjStatusDiv.style.color = '#777';
+    }
+
+    try {
+        const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpjValue}`);
+        if (!response.ok) throw new Error('Erro na API');
+        const data = await response.json();
+
+        const setVal = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.value = val || '';
+        };
+
+        setVal('razaoSocial', data.razao_social);
+        setVal('nomeFantasia', data.nome_fantasia || data.razao_social);
+        
+        if (data.cep) {
+            setVal('cep', data.cep.replace(/^(\d{5})(\d{3})/, '$1-$2'));
+            setVal('logradouro', data.logradouro);
+            setVal('numero', data.numero);
+            setVal('complemento', data.complemento);
+            setVal('bairro', data.bairro);
+            setVal('cidade', data.municipio);
+            setVal('uf', data.uf);
+        }
+
+        setVal('email', data.email);
+        
+        if (data.ddd_telefone_1) {
+            let tel = data.ddd_telefone_1;
+            if (tel.length >= 10) {
+                tel = tel.replace(/\D/g, '');
+                tel = tel.replace(/^(\d{2})(\d)/g, '($1) $2');
+                tel = tel.replace(/(\d)(\d{4})$/, '$1-$2');
+            }
+            setVal('telefone1', tel);
+        }
+
+        if (cnpjStatusDiv) {
+            cnpjStatusDiv.textContent = '';
+            cnpjStatusDiv.style.color = 'green';
+        }
+    } catch (e) {
+        console.error(e);
+        if (cnpjStatusDiv) {
+            cnpjStatusDiv.textContent = '⚠️ Dados não encontrados automaticamente.';
+            cnpjStatusDiv.style.color = '#e67e22';
+        }
+    }
+}
+
+async function consultarCPF(event) {
+    const cpfInput = event.target;
+    const nomeInput = document.getElementById('responsavelLegal');
+    const cpfValue = cpfInput.value.replace(/\D/g, '');
+
+    if (cpfValue.length !== 11) return;
+    
+    // Feedback visual
+    nomeInput.placeholder = "Consultando Receita...";
+
+    try {
+        // OBS: A Receita Federal não possui API pública gratuita para CPF (como a BrasilAPI).
+        // É necessário contratar um serviço (Serpro, Infosimples, etc) e colocar a URL aqui.
+        
+        // Exemplo de estrutura para chamada externa:
+        // const response = await fetch(`https://api.seuservico.com.br/cpf/${cpfValue}`, {
+        //     headers: { "Authorization": "Bearer SEU_TOKEN" }
+        // });
+        // const data = await response.json();
+        // if (data.nome) nomeInput.value = data.nome;
+        
+        console.log("Configure a API de CPF no script.js (Função consultarCPF)");
+    } catch (e) {
+        console.error("Erro na consulta de CPF:", e);
+    } finally {
+        nomeInput.placeholder = "";
+    }
 }
 
 // --- ENVIO DO FORMULÁRIO ---

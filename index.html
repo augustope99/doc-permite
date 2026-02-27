@@ -16,6 +16,19 @@
         </header>
 
         <form id="docForm">
+            <!-- Validação Inicial de CNPJ (Acesso) -->
+            <div class="form-grid" style="margin-bottom: 20px;">
+                <div class="form-group full-width">
+                    <label for="cnpjCheck">CNPJ para Validação (Acesso) *</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="cnpjCheck" placeholder="00.000.000/0000-00" maxlength="18">
+                        <button type="button" id="btnConsultarCNPJ" class="submit-btn" style="width: auto; margin: 0; padding: 10px 20px;">Validar</button>
+                    </div>
+                    <div id="cnpj-check-status" style="padding-top: 5px; font-size: 0.9em; font-weight: bold;"></div>
+                </div>
+            </div>
+
+            <div id="restricted-content" class="hidden">
             <div class="form-grid">
                 <div class="partner-group">
                     <div class="form-group">
@@ -28,17 +41,6 @@
                         <input type="number" id="qtdePos" name="qtdePos" min="0" placeholder="Ex: 1" required>
                     </div>
                 </div>
-
-                <div class="partner-group">
-                    <div class="form-group">
-                        <label for="accelere">Possui Accelere? *</label>
-                        <select id="accelere" name="accelere" required>
-                            <option value="">Selecione</option>
-                            <option value="Inativo">Inativo</option>
-                            <option value="Ativo">Ativo</option>
-                            <option value="Não Apto">Não Apto</option>
-                        </select>
-                    </div>
 
                     <div class="form-group">
                         <label for="filial">Filial *</label>
@@ -66,6 +68,7 @@
                 <div class="form-group">
                     <label for="cnpj">CNPJ *</label>
                     <input type="text" id="cnpj" name="cnpj" placeholder="00.000.000/0000-00" maxlength="18" required>
+                    <div id="cnpj-status" style="padding-top: 5px; font-size: 0.9em; font-weight: bold;"></div>
                 </div>
 
                 <div class="form-group full-width">
@@ -482,6 +485,7 @@
             <div class="button-container">
                 <button type="submit" class="submit-btn">Enviar Documentos</button>
             </div>
+            </div> <!-- Fim do restricted-content -->
         </form>
 
         <div id="loading" class="loading hidden">

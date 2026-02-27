@@ -1,38 +1,44 @@
 import io
 import re
-import os
 import pandas as pd
+import requests
+import msal
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from office365.sharepoint.client_context import ClientContext
-from office365.runtime.auth.user_credential import UserCredential
 
 # ==============================================================================
 # CONFIGURAÇÃO INICIAL
 # ==============================================================================
 
 app = Flask(__name__)
-# Habilita o CORS para permitir que seu frontend acesse esta API
 CORS(app)
 
-# --- CONFIGURAÇÃO DO SHAREPOINT ---
-SITE_URL = "https://maisper.sharepoint.com/sites/PERmite-OperaoIniciada"
-FILE_PATH = "/sites/PERmite-OperaoIniciada/Documentos Compartilhados/Compliance (KYC)/FEIRA/ConsultaCNPJ.xlsx"
+# --- CONFIGURAÇÃO DO SHAREPOINT (GRAPH) ---
 
-# IMPORTANTE: Por segurança, em produção, use variáveis de ambiente.
-# Ex: USERNAME = os.getenv("SHAREPOINT_USER")
-USERNAME = "USUARIO_TECNICO"
-PASSWORD = "SENHA_TECNICA"
+SITE_ID = "maisper.sharepoint.com,5c03e269-5715-4f03-9ce4-3b38ecde662c,7b666dd9-e2b5-426a-a5ec-e79a828d1298"
 
-# Mapeamento de status para a resposta JSON, conforme especificado
+# Documentos Compartilhados
+DRIVE_ID = "b!aeIDXBVXA0-c5Ds47N5mLNltZnu14mpCpeznmoKNEpjYBIMMA6_pRac-R0UO8E3L"
+
+FILE_PATH_GRAPH = "/Compliance (KYC)/FEIRA/CNPJ-ANALISADOS.xlsx"
+
+# --- CREDENCIAIS AZURE APP ---
+
+CLIENT_ID = "89b07234-1e08-43e6-82f7-7b03d6dce6c0"
+CLIENT_SECRET = "Bkh8Q~G3juNpUjiMGg8N93VaKmA1OADYRPzXOagG"
+TENANT_ID = "1fb2191f-c87b-46f6-993f-36116dcce77b"
+
+# ==============================================================================
+# MAPEAMENTO DE STATUS
+# ==============================================================================
+
 STATUS_MAP = {
     "APROVADO": {"status": "APROVADO", "icon": "green"},
     "REPROVADO": {"status": "REPROVADO", "icon": "red"},
     "EM_ANALISE": {"status": "EM_ANALISE", "icon": "clock"},
-    # Adicionei PENDENTE aqui, caso exista na sua planilha.
-    # Se não existir, pode remover.
     "PENDENTE": {"status": "PENDENTE", "icon": "clock"},
 }
+
 NOT_FOUND_RESPONSE = {"status": "not_found", "icon": "question"}
 ERROR_RESPONSE = {"status": "erro"}
 
@@ -41,74 +47,129 @@ ERROR_RESPONSE = {"status": "erro"}
 # ==============================================================================
 
 def limpar_cnpj(cnpj):
-    """Remove caracteres não numéricos de uma string de CNPJ."""
     if not isinstance(cnpj, str):
         cnpj = str(cnpj)
     return re.sub(r'\D', '', cnpj)
 
+
+def obter_token():
+    """
+    Obtém token Microsoft Graph
+    """
+
+    authority = f"https://login.microsoftonline.com/{TENANT_ID}"
+
+    app_auth = msal.ConfidentialClientApplication(
+        CLIENT_ID,
+        authority=authority,
+        client_credential=CLIENT_SECRET
+    )
+
+    token = app_auth.acquire_token_for_client(
+        scopes=["https://graph.microsoft.com/.default"]
+    )
+
+    if "access_token" not in token:
+        raise Exception(token)
+
+    return token["access_token"]
+
+
+def baixar_excel():
+    """
+    Baixa Excel via Microsoft Graph
+    """
+
+    access_token = obter_token()
+
+    url = f"https://graph.microsoft.com/v1.0/sites/{SITE_ID}/drives/{DRIVE_ID}/root:{FILE_PATH_GRAPH}:/content"
+
+    headers = {
+        "Authorization": f"Bearer {access_token}"
+    }
+
+    response = requests.get(url, headers=headers)
+
+    if response.status_code != 200:
+        raise Exception(response.text)
+
+    return io.BytesIO(response.content)
+
+
 # ==============================================================================
-# ENDPOINT DA API
+# ENDPOINT API
 # ==============================================================================
 
 @app.route('/consultar-cnpj', methods=['POST'])
 def consultar_cnpj():
-    """
-    Endpoint que recebe um CNPJ, consulta uma planilha Excel no SharePoint
-    e retorna o status correspondente.
-    """
+
     try:
+
         data = request.get_json()
+
         if not data or 'cnpj' not in data:
-            return jsonify({"error": "CNPJ não fornecido no corpo da requisição"}), 400
+            return jsonify({"error": "CNPJ não fornecido"}), 400
 
         cnpj_usuario = data['cnpj']
         cnpj_limpo_usuario = limpar_cnpj(cnpj_usuario)
 
-        # --- ETAPA 1: Autenticar e baixar a planilha do SharePoint ---
-        ctx = ClientContext(SITE_URL).with_credentials(UserCredential(USERNAME, PASSWORD))
-        
-        # Baixa o arquivo em memória
-        file_response = ctx.web.get_file_by_server_relative_url(FILE_PATH).download().execute_query()
-        
-        if not file_response.content:
-            raise ValueError("Não foi possível baixar o arquivo do SharePoint. Verifique o caminho e as permissões.")
+        # 1 - BAIXAR PLANILHA
 
-        # --- ETAPA 2: Ler a planilha com Pandas ---
-        # Usamos io.BytesIO para ler o conteúdo binário do arquivo em memória
-        arquivo_excel = io.BytesIO(file_response.content)
+        excel_buffer = baixar_excel()
 
-        # Lê a planilha, especificando a aba e garantindo que a coluna CNPJ seja lida como texto
+        # 2 - LER EXCEL
+
         df = pd.read_excel(
-            arquivo_excel,
-            sheet_name='ConsultaCNPJ', # Garanta que o nome da aba está correto
-            dtype={'CNPJ': str, 'STATUS': str} # Força a leitura das colunas como texto
+            excel_buffer,
+            sheet_name='ConsultaCNPJ',
+            dtype=str
         )
 
-        # --- ETAPA 3: Processar e buscar o CNPJ ---
-        # Cria uma coluna temporária com os CNPJs limpos para uma comparação eficiente
+        # Normalizar colunas
+
+        df.columns = [c.upper().strip() for c in df.columns]
+
+        if 'CNPJ' not in df.columns or 'STATUS' not in df.columns:
+            raise Exception("Planilha precisa ter colunas CNPJ e STATUS")
+
+        # Limpar CNPJ planilha
+
         df['CNPJ_LIMPO'] = df['CNPJ'].apply(limpar_cnpj)
 
-        # Busca pelo CNPJ limpo do usuário na coluna de CNPJs limpos do DataFrame
+        # 3 - BUSCAR
+
         resultado = df[df['CNPJ_LIMPO'] == cnpj_limpo_usuario]
 
-        # --- ETAPA 4: Retornar o resultado ---
+        # 4 - RETORNAR
+
         if not resultado.empty:
-            # Pega o status da primeira linha encontrada
+
             status_encontrado = resultado.iloc[0]['STATUS'].upper().strip()
-            # Retorna a resposta mapeada ou a resposta de não encontrado como fallback
-            return jsonify(STATUS_MAP.get(status_encontrado, NOT_FOUND_RESPONSE))
+
+            return jsonify(
+                STATUS_MAP.get(status_encontrado, NOT_FOUND_RESPONSE)
+            )
+
         else:
+
             return jsonify(NOT_FOUND_RESPONSE)
 
     except Exception as e:
-        # Captura qualquer erro (autenticação, arquivo não encontrado, erro de leitura, etc.)
-        print(f"Ocorreu um erro no servidor: {e}")
+
+        print("ERRO SERVIDOR:")
+        print(e)
+
         return jsonify(ERROR_RESPONSE), 500
 
+
 # ==============================================================================
-# EXECUÇÃO DO SERVIDOR
+# EXECUÇÃO
 # ==============================================================================
 
 if __name__ == '__main__':
-    # Executa o servidor na porta 5000, acessível na sua rede local
-    app.run(host='0.0.0.0', port=5000, debug=True)
+
+    app.run(
+        host='0.0.0.0',
+        port=5000,
+        debug=True
+    )

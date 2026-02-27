@@ -1,0 +1,47 @@
+import requests
+import msal
+import json
+
+TENANT_ID = "1fb2191f-c87b-46f6-993f-36116dcce77b"
+CLIENT_ID = "89b07234-1e08-43e6-82f7-7b03d6dce6c0"
+CLIENT_SECRET = "Bkh8Q~G3juNpUjiMGg8N93VaKmA1OADYRPzXOagG"
+
+SITE_URL = "maisper.sharepoint.com:/sites/PERmite-OperaoIniciada"
+
+authority = f"https://login.microsoftonline.com/{TENANT_ID}"
+
+app = msal.ConfidentialClientApplication(
+    CLIENT_ID,
+    authority=authority,
+    client_credential=CLIENT_SECRET
+)
+
+token = app.acquire_token_for_client(
+    scopes=["https://graph.microsoft.com/.default"]
+)
+
+access_token = token["access_token"]
+
+# pegar SITE ID automaticamente
+
+url_site = f"https://graph.microsoft.com/v1.0/sites/{SITE_URL}"
+
+headers = {
+    "Authorization": f"Bearer {access_token}"
+}
+
+site = requests.get(url_site, headers=headers).json()
+
+site_id = site["id"]
+
+print("\nSITE_ID:")
+print(site_id)
+
+# pegar DRIVES
+
+url_drives = f"https://graph.microsoft.com/v1.0/sites/{site_id}/drives"
+
+drives = requests.get(url_drives, headers=headers).json()
+
+print("\nDRIVES:")
+print(json.dumps(drives, indent=2))

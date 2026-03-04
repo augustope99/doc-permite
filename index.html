@@ -1,0 +1,2050 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Doc Permite - Envio de Documentos</title>
+    <style>
+/* =========================================
+   1. RESET & BASE (MOBILE FIRST DEFAULT)
+   ========================================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1f1f1f 0%, #3c0000 100%);
+    min-height: 100vh;
+    color: #ffffff;
+    /* Ajustes para áreas seguras do iPhone (notch/home bar) */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    accent-color: #8B0000;
+    overflow-x: hidden; /* Impede rolagem horizontal indesejada */
+}
+
+/* =========================================
+   LOGIN CONTAINER
+   ========================================= */
+#login-container {
+    max-width: 450px;
+    margin: 10vh auto 0;
+    padding: 40px;
+    background: rgba(42, 42, 42, 0.95);
+    border-radius: 12px;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5), 0 10px 20px rgba(139, 0, 0, 0.3);
+    color: #fff;
+}
+
+#login-container header {
+    text-align: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #8B0000;
+}
+
+#login-container .form-group {
+    margin-bottom: 20px;
+}
+/* =========================================
+   2. CONTAINER & ESTRUTURA
+   ========================================= */
+.container {
+    width: 100%;
+    margin: 0;
+    padding: 20px 15px; /* Espaçamento interno confortável para mobile */
+    background: rgba(42, 42, 42, 0.95);
+    border-radius: 0; /* Tela cheia no mobile */
+    box-shadow: none;
+    position: relative;
+    z-index: 1;
+    overflow: hidden; /* Garante que nada vaze do container */
+}
+
+header {
+    text-align: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #8B0000;
+}
+
+header h1 {
+    font-size: 1.6em; /* Fonte menor para caber no mobile */
+    margin-bottom: 8px;
+    line-height: 1.2;
+    word-wrap: break-word;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+header p {
+    color: #cccccc;
+    font-size: 0.95em;
+}
+
+/* =========================================
+   3. FORMULÁRIO (LAYOUT EM COLUNA ÚNICA)
+   ========================================= */
+.form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* No mobile, grupos de parceiros ficam empilhados */
+.partner-group {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    position: relative;
+}
+
+.section-header {
+    margin-top: 15px;
+    margin-bottom: 5px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #8B0000;
+}
+
+.section-header h3 {
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 1.2em;
+}
+
+/* =========================================
+   4. INPUTS & CONTROLES
+   ========================================= */
+label {
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 6px;
+    font-size: 0.9em;
+}
+
+input:not([type="checkbox"]):not([type="radio"]), 
+select {
+    width: 100%;
+    min-width: 0; /* CRUCIAL: impede que o input force a largura do pai */
+    padding: 12px; /* Área de toque confortável */
+    border: 1px solid #555;
+    border-radius: 8px;
+    font-size: 16px; /* Tamanho 16px previne zoom automático no iOS */
+    background: #2c2c2c;
+    color: #ffffff;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: #8B0000;
+    box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.5);
+}
+
+input.invalid-field {
+    border-color: #DC143C !important;
+    box-shadow: 0 0 0 3px rgba(220, 20, 60, 0.5) !important;
+}
+
+/* Seta customizada para Select */
+.form-group:has(select) {
+    position: relative;
+}
+.form-group:has(select)::after {
+    content: '▼';
+    font-size: 12px;
+    color: #ccc;
+    position: absolute;
+    right: 15px;
+    top: 42px; /* Ajuste fino baseado na altura do label + input */
+    pointer-events: none;
+}
+/* Fallback para navegadores antigos */
+.form-group select {
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23CCCCCC%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 15px top 50%;
+    background-size: 12px auto;
+}
+
+/* Input de Data */
+input[type="date"] {
+    background-color: #2c2c2c;
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}
+
+/* Checkbox & Radio */
+.checkbox-group, .radio-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 5px 0;
+}
+
+.checkbox-group label, .radio-group label {
+    margin-bottom: 0;
+    font-weight: normal;
+    display: flex;
+    align-items: center;
+}
+
+input[type="checkbox"], input[type="radio"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background-color: #2c2c2c;
+    margin-right: 8px;
+    width: 24px;
+    height: 24px;
+    border: 2px solid #555;
+    display: grid;
+    place-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+input[type="checkbox"] { border-radius: 6px; }
+input[type="radio"] { border-radius: 50%; }
+
+input[type="checkbox"]::before {
+    content: "";
+    width: 14px;
+    height: 14px;
+    transform: scale(0);
+    transition: 0.2s transform ease-in-out;
+    background-color: white;
+    clip-path: polygon(20% 0%, 0% 20%, 30% 50%, 0% 80%, 20% 100%, 50% 70%, 80% 100%, 100% 80%, 70% 50%, 100% 20%, 80% 0%, 50% 30%);
+}
+
+input[type="radio"]::before {
+    content: "";
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    transform: scale(0);
+    transition: 0.2s transform ease-in-out;
+    background-color: white;
+}
+
+input[type="checkbox"]:checked, input[type="radio"]:checked {
+    background-color: #8B0000;
+    border-color: #8B0000;
+}
+
+input[type="checkbox"]:checked::before, input[type="radio"]:checked::before {
+    transform: scale(1);
+}
+
+/* =========================================
+   5. CAIXAS DE INFORMAÇÃO E TABELAS
+   ========================================= */
+.info-box {
+    background: #1a1a1a;
+    border: 1px solid #555;
+    border-left: 5px solid #8B0000;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+    overflow-wrap: break-word; /* Quebra palavras longas */
+}
+
+.info-box h4 {
+    color: #ffffff;
+    margin-bottom: 10px;
+}
+
+.info-box p, .info-box ul, .info-box ol {
+    color: #f0f0f0;
+    line-height: 1.5;
+    font-size: 0.95em;
+}
+
+.info-box ul, .info-box ol {
+    padding-left: 20px;
+}
+
+.info-box-static {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+.info-box-static p {
+    background: #2c2c2c;
+    border: 1px solid #555;
+    border-radius: 8px;
+    padding: 12px;
+    color: #cccccc;
+}
+
+.table-container {
+    width: 100%;
+    overflow-x: auto; /* Permite rolagem horizontal APENAS na tabela */
+    -webkit-overflow-scrolling: touch;
+    margin-top: 15px;
+    border: 1px solid #555;
+    border-radius: 4px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 500px; /* Força a tabela a ter um tamanho mínimo legível */
+}
+
+th, td {
+    border: 1px solid #555;
+    padding: 8px;
+    text-align: center;
+    font-size: 0.85em;
+}
+
+th {
+    background-color: #8B0000;
+    color: #fff;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #2c2c2c;
+}
+
+/* =========================================
+   6. ASSINATURA E UPLOAD
+   ========================================= */
+.signature-section {
+    background: #1a1a1a;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.3s;
+}
+
+.signature-section:focus-within {
+    box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.5);
+}
+
+.signature-section label {
+    margin-bottom: 10px;
+}
+
+.signature-pad-container {
+    border: 2px dashed #555;
+    border-radius: 8px;
+    height: 180px;
+    background-color: #fff;
+    overflow: hidden;
+    width: 100%;
+    position: relative;
+    transition: border-color 0.3s;
+}
+
+.signature-pad-container:hover {
+    border-color: #DC143C;
+}
+
+.signature-pad-container canvas {
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    border-radius: 6px; /* Match parent's radius */
+}
+
+.upload-section {
+    position: relative;
+    margin: 20px 0;
+    padding: 0; /* Removido para o label controlar o preenchimento */
+    border: 2px dashed #8B0000;
+    border-radius: 8px;
+    background: #1a1a1a;
+    text-align: center;
+    overflow: hidden; /* Garante que nada vaze */
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.upload-section:hover {
+    background-color: #2a2a2a;
+    border-color: #DC143C;
+}
+
+/* Esconde o input padrão, mas o mantém funcional e sobreposto */
+.upload-section input[type="file"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 10;
+}
+
+/* Estiliza o label para ser a área visual clicável */
+.upload-section label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 20px;
+    color: #ccc;
+    margin-bottom: 0; /* Sobrescreve o padrão */
+}
+
+/* Adiciona um ícone de upload */
+.upload-section label::before {
+    content: '📤';
+    font-size: 2.5em;
+    margin-bottom: 15px;
+    transition: transform 0.3s;
+}
+
+.upload-section:hover label::before {
+    transform: scale(1.1) translateY(-5px);
+}
+
+.button-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.submit-btn {
+    width: 100%; /* Botão largura total no mobile */
+    padding: 15px;
+    background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+}
+
+.submit-btn:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(220, 20, 60, 0.4);
+}
+
+.submit-btn:active:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(220, 20, 60, 0.4);
+}
+
+.submit-btn:disabled {
+    background: #555;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.submit-btn.clear-btn {
+    background: #444;
+    font-size: 0.9em;
+    font-weight: 500;
+    padding: 10px 15px;
+    margin-top: 15px;
+    width: auto;
+    min-width: 0;
+    align-self: flex-end; /* Alinha o botão à direita */
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.submit-btn.clear-btn:hover {
+    background: #555;
+    color: #fff;
+}
+
+/* =========================================
+   7. ELEMENTOS OCULTOS NO MOBILE
+   ========================================= */
+.sidebar-text {
+    display: none; /* Esconde texto lateral no mobile para evitar overflow */
+}
+
+.hidden { display: none; }
+.loading, .message { text-align: center; margin-top: 20px; }
+.spinner { 
+    border: 4px solid #444; border-top: 4px solid #8B0000; 
+    border-radius: 50%; width: 40px; height: 40px; 
+    animation: spin 1s linear infinite; margin: 0 auto 15px; 
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.message { padding: 15px; border-radius: 8px; }
+.message.success { background: #d4edda; color: #155724; }
+.message.error { background: #f8d7da; color: #721c24; }
+.char-counter { font-size: 0.8em; color: #ccc; margin-left: 5px; }
+.file-name {
+    padding-bottom: 15px;
+    font-size: 0.9em;
+    color: #28a745; /* Verde para indicar sucesso */
+    font-weight: 500;
+    min-height: 1.2em; /* Evita que o layout pule quando o texto aparece */
+}
+
+
+/* =========================================
+   8. DESKTOP E TABLET (MIN-WIDTH: 768px)
+   ========================================= */
+@media (min-width: 768px) {
+    body {
+        padding: 40px; /* Adiciona margem ao redor do site */
+    }
+
+    .container {
+        max-width: 900px;
+        margin: 0 auto;
+        border-radius: 12px;
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5), 0 10px 20px rgba(139, 0, 0, 0.3);
+        padding: 40px;
+    }
+
+    header h1 {
+        font-size: 2.5em;
+    }
+
+    /* Layout em Grid para Desktop */
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    /* Partner Group: Ocupa 2 colunas e internamente divide em 2 */
+    .partner-group {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    /* Elementos que devem ocupar a largura total */
+    .form-group.full-width,
+    .section-header,
+    .info-box,
+    .signature-section,
+    .upload-section {
+        grid-column: 1 / -1;
+    }
+
+    .submit-btn {
+        width: auto;
+        min-width: 300px;
+        padding: 15px 40px;
+    }
+
+    /* Texto Lateral Animado (Apenas Desktop) */
+    .sidebar-text {
+        display: block;
+        position: fixed;
+        font-size: 4em;
+        font-weight: 900;
+        color: rgba(255, 255, 255, 0.25);
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+        z-index: 0;
+    }
+
+    .sidebar-left {
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        animation: slideDown 15s linear infinite;
+    }
+
+    .sidebar-right {
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        animation: slideUp 15s linear infinite;
+    }
+
+    @keyframes slideDown { 0% { top: -20%; } 100% { top: 120%; } }
+    @keyframes slideUp { 0% { top: 120%; } 100% { top: -20%; } }
+}
+
+/* Ajustes para telas muito grandes */
+@media (min-width: 1200px) {
+    .sidebar-left { left: 40px; }
+    .sidebar-right { right: 40px; }
+}
+.char-counter {
+    font-weight: normal;
+    color: #cccccc;
+    margin-left: 8px;
+}
+
+/* Ajuste específico para a dimensão 414x896px, conforme solicitado */
+@media (width: 414px) and (height: 896px) {
+    .container {
+        margin: -7px;
+    }
+}
+
+/* =========================================
+   9. COMPLICE KYC LOADER & POPUP
+   ========================================= */
+.complice-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    transition: opacity 0.3s ease;
+}
+
+.complice-overlay.hidden {
+    display: none !important;
+}
+
+.complice-loader-content {
+    text-align: center;
+    color: #fff;
+    font-size: 1.2em;
+}
+
+.complice-popup-content {
+    background: #2c2c2c;
+    padding: 30px 40px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+    border-top: 5px solid #555;
+    animation: popup-enter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-width: 90%;
+}
+
+@keyframes popup-enter {
+    from {
+        opacity: 0;
+        transform: scale(0.8) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.complice-popup-content .icon {
+    font-size: 3em;
+    margin-bottom: 15px;
+}
+
+.complice-popup-content .message {
+    font-size: 1.1em;
+    color: #fff;
+    margin: 0;
+}
+
+/* Tipos de Popup */
+.complice-popup-content.sucesso {
+    border-top-color: #28a745;
+}
+.complice-popup-content.erro {
+    border-top-color: #dc3545;
+}
+.complice-popup-content.alerta {
+    border-top-color: #ffc107;
+}
+
+@media (min-width: 768px) {
+    .complice-popup-content { max-width: 450px; }
+}
+
+/* =========================================
+   10. ANIMAÇÕES DE TRANSIÇÃO (LOGIN -> FORM)
+   ========================================= */
+.fade-out-transition {
+    opacity: 0 !important;
+    transform: translateY(-30px);
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+    pointer-events: none;
+}
+
+.fade-in-animation {
+    animation: fadeInUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+    </style>
+    <script src="https://alcdn.msauth.net/browser/2.30.0/js/msal-browser.min.js"></script>
+</head>
+<body>
+    <div id="login-container">
+        <header>
+            <h1>Acesso ao Sistema</h1>
+            <p>Por favor, faça login para continuar.</p>
+        </header>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="login-email">E-mail Corporativo</label>
+                <input type="email" id="login-email" required placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="login-password">Senha</label>
+                <input type="password" id="login-password" required>
+            </div>
+            <div id="login-error" class="message error" style="display: none; margin-bottom: 15px;"></div>
+            <div class="button-container">
+                <button type="submit" id="login-btn" class="submit-btn">Entrar</button>
+            </div>
+        </form>
+    </div>
+    <div class="container" style="display: none;">
+        <header>
+            <h1>Formulario de Credenciamento</h1>
+        </header>
+
+        <form id="docForm">
+            <!-- Validação Inicial de CNPJ (Acesso) -->
+            <div class="form-grid" style="margin-bottom: 20px;">
+                <div class="form-group full-width">
+                    <label for="cnpjCheck">CNPJ para Validação (Acesso) *</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="cnpjCheck" placeholder="00.000.000/0000-00" maxlength="18">
+                        <button type="button" id="btnConsultarCNPJ" class="submit-btn" style="width: auto; margin: 0; padding: 10px 20px;">Validar</button>
+                    </div>
+                    <div id="cnpj-check-status" style="padding-top: 5px; font-size: 0.9em; font-weight: bold;"></div>
+                </div>
+            </div>
+
+            <div id="restricted-content" class="hidden">
+            <div class="form-grid">
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label for="especialista">Especialista / Executivo *</label>
+                        <input type="text" id="especialista" name="especialista" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="qtdePos">Qtde equipamento(s) *</label>
+                        <input type="number" id="qtdePos" name="qtdePos" min="0" placeholder="Ex: 1" required>
+                    </div>
+                </div>
+
+                    <div class="form-group">
+                        <label for="filial">Filial *</label>
+                        <input type="text" id="filial" name="filial" required>
+                    </div>
+
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label for="marca">Marca *</label>
+                        <select id="marca" name="marca" required>
+                            <option value="">Selecione</option>
+                            <option value="RMP">RMP</option>
+                            <option value="DISAPE">DISAPE</option>
+                            <option value="REAL DUAS RODAS">REAL DUAS RODAS</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="codigoCliente">Código do Cliente *</label>
+                        <input type="text" id="codigoCliente" name="codigoCliente" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="cnpj">CNPJ *</label>
+                    <input type="text" id="cnpj" name="cnpj" placeholder="00.000.000/0000-00" maxlength="18" required>
+                    <div id="cnpj-status" style="padding-top: 5px; font-size: 0.9em; font-weight: bold;"></div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="razaoSocial">Razão Social *</label>
+                    <input type="text" id="razaoSocial" name="razaoSocial" required>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="nomeFantasia">Nome Fantasia *</label>
+                    <input type="text" id="nomeFantasia" name="nomeFantasia" required>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="segmento">Segmento *</label>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="segmento_auto" name="segmento" value="Auto Peças">
+                        <label for="segmento_auto">Auto Peças</label>
+                        <input type="checkbox" id="segmento_moto" name="segmento" value="Motopeças">
+                        <label for="segmento_moto">Motopeças</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="cep">CEP *</label>
+                    <input type="text" id="cep" name="cep" placeholder="00000-000" maxlength="9" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="logradouro">Logradouro *</label>
+                    <input type="text" id="logradouro" name="logradouro" required>
+                </div>
+
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label for="numero">Número *</label>
+                        <input type="text" id="numero" name="numero" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="complemento">Complemento</label>
+                        <input type="text" id="complemento" name="complemento">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="bairro">Bairro *</label>
+                    <input type="text" id="bairro" name="bairro" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="cidade">Cidade *</label>
+                    <input type="text" id="cidade" name="cidade" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="uf">UF *</label>
+                    <select id="uf" name="uf" required>
+                        <option value="">Selecione</option>
+                        <option value="AC">Acre</option>
+                        <option value="AL">Alagoas</option>
+                        <option value="AP">Amapá</option>
+                        <option value="AM">Amazonas</option>
+                        <option value="BA">Bahia</option>
+                        <option value="CE">Ceará</option>
+                        <option value="DF">Distrito Federal</option>
+                        <option value="ES">Espírito Santo</option>
+                        <option value="GO">Goiás</option>
+                        <option value="MA">Maranhão</option>
+                        <option value="MT">Mato Grosso</option>
+                        <option value="MS">Mato Grosso do Sul</option>
+                        <option value="MG">Minas Gerais</option>
+                        <option value="PA">Pará</option>
+                        <option value="PB">Paraíba</option>
+                        <option value="PR">Paraná</option>
+                        <option value="PE">Pernambuco</option>
+                        <option value="PI">Piauí</option>
+                        <option value="RJ">Rio de Janeiro</option>
+                        <option value="RN">Rio Grande do Norte</option>
+                        <option value="RS">Rio Grande do Sul</option>
+                        <option value="RO">Rondônia</option>
+                        <option value="RR">Roraima</option>
+                        <option value="SC">Santa Catarina</option>
+                        <option value="SP">São Paulo</option>
+                        <option value="SE">Sergipe</option>
+                        <option value="TO">Tocantins</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">E-mail Principal *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="quemSugeriu">Quem Sugeriu? *</label>
+                    <input type="text" id="quemSugeriu" name="quemSugeriu" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="principalContato">Principal Contato *</label>
+                    <input type="text" id="principalContato" name="principalContato" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="whatsapp">WhatsApp *</label>
+                    <input type="tel" id="whatsapp" name="whatsapp" placeholder="(00) 00000-0000" maxlength="15" required>
+                </div>
+
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label for="telefone1">Telefone 1 (DDD/Número)</label>
+                        <input type="tel" id="telefone1" name="telefone1" placeholder="(00) 0000-0000" maxlength="15">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="telefone2">Telefone 2 (DDD/Número)</label>
+                        <input type="tel" id="telefone2" name="telefone2" placeholder="(00) 0000-0000" maxlength="15">
+                    </div>
+                </div>
+
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label for="responsavelLegal">Responsável Legal *</label>
+                        <input type="text" id="responsavelLegal" name="responsavelLegal" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cpfResponsavel">CPF (Responsável Legal) *</label>
+                        <input type="text" id="cpfResponsavel" name="cpfResponsavel" placeholder="000.000.000-00" maxlength="14" required>
+                    </div>
+                </div>
+
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label for="socio2">Sócio 2</label>
+                        <input type="text" id="socio2" name="socio2">
+                    </div>
+                    <div class="form-group">
+                        <label for="cpfSocio2">CPF (Sócio 2)</label>
+                        <input type="text" id="cpfSocio2" name="cpfSocio2" placeholder="000.000.000-00" maxlength="14">
+                    </div>
+                </div>
+
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label for="socio3">Sócio 3</label>
+                        <input type="text" id="socio3" name="socio3">
+                    </div>
+                    <div class="form-group">
+                        <label for="cpfSocio3">CPF (Sócio 3)</label>
+                        <input type="text" id="cpfSocio3" name="cpfSocio3" placeholder="000.000.000-00" maxlength="14">
+                    </div>
+                </div>
+
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label for="socio4">Sócio 4</label>
+                        <input type="text" id="socio4" name="socio4">
+                    </div>
+                    <div class="form-group">
+                        <label for="cpfSocio4">CPF (Sócio 4)</label>
+                        <input type="text" id="cpfSocio4" name="cpfSocio4" placeholder="000.000.000-00" maxlength="14">
+                    </div>
+                </div>
+
+                <div class="form-group full-width section-header">
+                    <h3>Dados Bancários do Estabelecimento</h3>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="razaoSocialConta">Razão Social da Conta Corrente *</label>
+                    <input type="text" id="razaoSocialConta" name="razaoSocialConta" required>
+                </div>
+
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label for="cnpjConta">CNPJ do Titular da Conta *</label>
+                        <input type="text" id="cnpjConta" name="cnpjConta" placeholder="00.000.000/0000-00" maxlength="18" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="chavePix">Chave PIX (desta conta) * <span id="chavePixCounter" class="char-counter"></span></label>
+                        <input type="text" id="chavePix" name="chavePix" required>
+                    </div>
+                </div>
+
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label for="nomeBanco">Nome do Banco *</label>
+                        <input type="text" id="nomeBanco" name="nomeBanco" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="codigoBanco">Código do banco *</label>
+                        <input type="text" id="codigoBanco" name="codigoBanco" required>
+                    </div>
+                </div>
+
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label for="agencia">Agência *</label>
+                        <input type="text" id="agencia" name="agencia" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contaDigito">Conta/Dígito *</label>
+                        <input type="text" id="contaDigito" name="contaDigito" placeholder="00000-0" required>
+                    </div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="tipoChavePix">Tipo da Chave PIX *</label>
+                    <select id="tipoChavePix" name="tipoChavePix" required>
+                        <option value="">Selecione</option>
+                        <option value="Celular">Celular</option>
+                        <option value="CNPJ">CNPJ</option>
+                        <option value="E-mail">E-mail</option>
+                        <option value="Aleatória">Aleatória</option>
+                    </select>
+                </div>
+
+                <div class="form-group full-width section-header">
+                    <h3>Condições Comerciais</h3>
+                </div>
+
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label>Antecipação Automática *</label>
+                        <div class="radio-group">
+                            <input type="radio" id="antecipacao_sim" name="antecipacaoAutomatica" value="Sim" required>
+                            <label for="antecipacao_sim">Sim</label>
+                            <input type="radio" id="antecipacao_nao" name="antecipacaoAutomatica" value="Não">
+                            <label for="antecipacao_nao">Não</label>
+                        </div>
+                    </div>
+                    <div class="form-group info-box-static">
+                        <label>Taxa Antecipação (%)</label>
+                        <p>2,35% a.m.</p>
+                    </div>
+                </div>
+
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label>Parcela Vendas? *</label>
+                        <div class="radio-group">
+                            <input type="radio" id="parcela_sim" name="parcelaVendas" value="Sim" required>
+                            <label for="parcela_sim">Sim</label>
+                            <input type="radio" id="parcela_nao" name="parcelaVendas" value="Não">
+                            <label for="parcela_nao">Não</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Custo por conta do Estabelecimento? *</label>
+                        <div class="radio-group">
+                            <input type="radio" id="porconta_sim" name="porContaEstabelecimento" value="Sim" required>
+                            <label for="porconta_sim">Sim</label>
+                            <input type="radio" id="porconta_nao" name="porContaEstabelecimento" value="Não">
+                            <label for="porconta_nao">Não</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="date-input-wrapper">
+                        <label for="dataRecebimento">Data de Envio de Docs *</label>
+                        <input type="date" id="dataRecebimento" name="dataRecebimento" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="tipoCredenciamento">Tipo Credenciamento *</label>
+                    <select id="tipoCredenciamento" name="tipoCredenciamento" required>
+                        <option value="">Selecione</option>
+                        <option value="In loco">In loco</option>
+                        <option value="Correios">Correios</option>
+                    </select>
+                </div>
+
+                <div class="info-box full-width">
+                    <h4>Taxas pactuadas para uso do SISTEMA PERmite</h4>
+                    <p>De acordo com o tipo de cartão e transação:</p>
+                    <ul>
+                        <li>Cartão Débito: Aceita</li>
+                        <li>Crédito à Vista (30 dias): 1,60%</li>
+                        <li>Crédito parcelado em 2 a 6 parcelas: 2,80%</li>
+                        <li>Crédito parcelado em 7 a 12 parcelas: 3,49%</li>
+                        <li>PIX (QR Code): R$0,99 por transação</li>
+                    </ul>
+                </div>
+        
+                <div class="info-box full-width">
+                    <h4>Equipamento(s) Locado(s)</h4>
+                    <p><strong>Marca e modelo:</strong> GERTEC GPOS720</p>
+                    <p><strong>Valor do aluguel unitário:</strong> R$79,00</p>
+                </div>
+
+                <div class="info-box full-width terms-box">
+                    <h4>Termo de Adesão ao SISTEMA PERmite</h4>
+                    <p>Pelo presente Termo de Adesão ao SISTEMA PERmite, de um lado a empresa que administra o Sistema, <strong>PERMITE PAGAMENTOS E NEGOCIOS LTDA</strong>, pessoa jurídica de direito privado, inscrita no CNPJ sob nº. 52.988.139/0001-99, com sede estabelecida à Av. Rondon Pacheco, nº. 4.600, 14º Andar, Sala 146, bairro Tibery, CEP 38.405-142, na Cidade de Uberlândia/MG, doravante denominada <strong>SUBADQUIRENTE</strong>, e, de outro lado, o estabelecimento acima qualificado, denominado <strong>ESTABELECIMENTO</strong>, neste ato representado por seu representante legal na forma de seu contrato social, têm entre si certo e ajustadas as seguintes condições:</p>
+                    <ol>
+                        <li>Neste ato, o ESTABELECIMENTO adere ao SISTEMA PERmite, concordando integral e expressamente com as cláusulas e condições dos TERMOS E CONDIÇÕES GERAIS PARA CONTRATAÇÃO DE PRODUTOS E SERVIÇOS DE PAGAMENTO “PERmite”, cuja íntegra encontra-se registrada no Cartório de Registro de Títulos e documentos da Comarca da Cidade de Uberlândia, Estado de Minas Gerais, sob o número nº 3344987, livro B262 disponível no portal da SUBADQUIRENTE.</li>
+                        <li>O sistema administrado pela SUBAQUIRENTE acima qualificada é uma solução de integração de funcionalidades de meio de pagamento que compreende: (a) captura, roteamento, transmissão e processamento de transações com cartão de débito ou crédito para os ESTABELECIMENTOS afiliados; (b) pagamento, por parte da SUBAQUIRENTE, das transações realizadas pelo ESTABELECIMENTO, na data de vencimento de cada parcela; e/ou (c) pagamento antecipado das parcelas futuras, diária e automaticamente, se essa for a opção do ESTABELECIMENTO, ou, a qualquer tempo, mediante solicitação específica, caso em que a antecipação será feita com taxa válida para a data.</li>
+                        <li>O ESTABELECIMENTO tem interesse em aceitar pagamentos com as bandeiras indicadas no quadro deste termo, estando a SUBADQUIRENTE apta a atender essa necessidade dentro da solução do SISTEMA PERmite, nas condições e percentuais também indicadas no quadro deste termo para cada uma das bandeiras e modalidades de transação, para parcelamento das vendas e para antecipação ou não do repasse de recebíveis, sendo certo que as taxas pactuadas serão deduzidas do valor total da transação em favor da SUBADQUIRENTE, conforme previsto no TERMOS E CONDIÇÕES GERAIS PARA CONTRATAÇÃO DE PRODUTOS E SERVIÇOS DE PAGAMENTO.</li>
+                        <li>O ESTABELECIMENTO está ciente que o efetivo credenciamento e a adesão ao PERmite está condicionado à sua aceitação prévia, mediante apresentação dos documentos solicitados pelo PERmite e avaliação interna de compliance.</li>
+                        <li>O ESTABELECIMENTO está ciente e concorda com os métodos adotados pela SUBADQUIRENTE para identificar e prevenir fraudes, lavagem de dinheiro e práticas ilícitas, comprometendo-se o ESTABELECIMENTO a monitorar e orientar seus funcionários, bem como cooperar e colaborar, principalmente no fornecimento das informações solicitadas, sob pena de ressarcimento à SUBADQUIRENTE e ainda descredenciamento do sistema, conforme disposto nos TERMOS E CONDIÇÕES GERAIS PARA CONTRATAÇÃO DE PRODUTOS E SERVIÇOS DE PAGAMENTO.</li>
+                        <li>A SUBADQUIRENTE disponibilizará através o seu site as informações sobre as vendas efetivamente realizadas, sobre os repasses e antecipações já efetivados, bem como sobre os agendamentos em datas futuras, que o ESTABELECIMENTO acessará com o login e a senha de seu exclusivo conhecimento.</li>
+                        <li>Segue abaixo o detalhamento da tabela de antecipação automática:</li>
+                    </ol>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th colspan="3">AUTOPEÇAS</th>
+                                    <th colspan="3">MOTOPEÇAS</th>
+                                </tr>
+                                <tr>
+                                    <th></th>
+                                    <th>ATÉ 30mil</th>
+                                    <th>DE 30K A 100K</th>
+                                    <th>ACIMA 100K</th>
+                                    <th>ATÉ 15mil</th>
+                                    <th>DE 15K A 100K</th>
+                                    <th>ACIMA 100K</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>1</td><td>4.55</td><td>4.50</td><td>4.26</td><td>4.55</td><td>4.50</td><td>4.26</td></tr>
+                                <tr><td>2</td><td>6.27</td><td>6.07</td><td>5.77</td><td>6.27</td><td>6.07</td><td>5.77</td></tr>
+                                <tr><td>3</td><td>7.37</td><td>7.17</td><td>6.87</td><td>7.37</td><td>7.17</td><td>6.87</td></tr>
+                                <tr><td>4</td><td>8.46</td><td>8.26</td><td>7.96</td><td>8.46</td><td>8.26</td><td>7.96</td></tr>
+                                <tr><td>5</td><td>9.53</td><td>9.33</td><td>9.03</td><td>9.53</td><td>9.33</td><td>9.03</td></tr>
+                                <tr><td>6</td><td>10.59</td><td>10.39</td><td>10.09</td><td>10.59</td><td>10.39</td><td>10.09</td></tr>
+                                <tr><td>7</td><td>15.12</td><td>14.72</td><td>13.72</td><td>15.12</td><td>14.72</td><td>13.72</td></tr>
+                                <tr><td>8</td><td>16.15</td><td>15.75</td><td>14.75</td><td>16.15</td><td>15.75</td><td>14.75</td></tr>
+                                <tr><td>9</td><td>17.16</td><td>16.76</td><td>15.76</td><td>17.16</td><td>16.76</td><td>15.76</td></tr>
+                                <tr><td>10</td><td>18.15</td><td>17.75</td><td>16.75</td><td>18.15</td><td>17.75</td><td>16.75</td></tr>
+                                <tr><td>11</td><td>19.12</td><td>18.72</td><td>17.72</td><td>19.12</td><td>18.72</td><td>17.72</td></tr>
+                                <tr><td>12</td><td>20.09</td><td>19.69</td><td>18.69</td><td>20.09</td><td>19.69</td><td>18.69</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Campos de Filial e Especialista PER (Assinatura) -->
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label for="filialAssinatura">Filial</label>
+                        <input type="text" id="filialAssinatura" name="filialAssinatura" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="especialistaAssinatura">Especialista PER</label>
+                        <input type="text" id="especialistaAssinatura" name="especialistaAssinatura" required>
+                    </div>
+                </div>
+
+                <!-- Campos de Local, Dia, Mês, Ano -->
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label for="local">Local</label>
+                        <input type="text" id="local" name="local" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dia">Dia</label>
+                        <select id="dia" name="dia" required>
+                            <option value="">Dia</option>
+                            <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="partner-group">
+                    <div class="form-group">
+                        <label for="mes">Mês</label>
+                        <select id="mes" name="mes" required>
+                            <option value="">Mês</option>
+                            <option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option><option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option><option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option><option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="ano">Ano</label>
+                        <select id="ano" name="ano" required>
+                            <option value="">Ano</option>
+                            <option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Assinatura SUBADQUIRENTE -->
+                <div class="signature-section">
+                    <label class="upload-label">(Assinatura Digital) SUBADQUIRENTE *</label>
+                    <div class="signature-pad-container">
+                        <canvas id="signature-pad-subadquirente"></canvas>
+                    </div>
+                    <button type="button" id="clear-signature-subadquirente" class="submit-btn clear-btn">Limpar Assinatura</button>
+                </div>
+
+                <!-- Assinatura ESTABELECIMENTO -->
+                <div class="signature-section">
+                    <label class="upload-label">(Assinatura Digital) ESTABELECIMENTO *</label>
+                    <div class="signature-pad-container">
+                        <canvas id="signature-pad-estabelecimento"></canvas>
+                    </div>
+                    <button type="button" id="clear-signature-estabelecimento" class="submit-btn clear-btn">Limpar Assinatura</button>
+                </div>
+
+            <!-- Campos ocultos para informações do visitante -->
+            <input type="hidden" id="visitorIp" name="visitorIp">
+            <input type="hidden" id="visitorLocation" name="visitorLocation">
+            <input type="hidden" id="accessTime" name="accessTime">
+
+            <div class="upload-section">
+                <label for="compBancario" class="upload-label">Comprovante bancário </label>
+                <input type="file" id="compBancario" name="compBancario" accept="image/*,.pdf" required>
+                <div class="file-name"></div>
+            </div>
+            </div> <!-- Fim do form-grid -->
+
+            <div class="button-container">
+                <button type="submit" class="submit-btn">Enviar Documentos</button>
+            </div>
+            </div> <!-- Fim do restricted-content -->
+        </form>
+
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p>Enviando documentos...</p>
+        </div>
+
+        <div id="message" class="message hidden"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+    <script>
+// CONFIGURAÇÃO MICROSOFT GRAPH API
+// IMPORTANTE: Substitua 'SEU_CLIENT_ID_AQUI' pelo Client ID do Azure AD
+// Siga os passos no arquivo CONFIGURACAO_AZURE.md
+
+const msalConfig = {
+    auth: {
+        clientId: '0a102342-3279-4cf1-bcf9-9bbf104a4434',
+        authority: 'https://login.microsoftonline.com/1fb2191f-c87b-46f6-993f-36116dcce77b',
+        redirectUri: 'https://augustope99.github.io/doc-permite/'
+    }
+};
+
+const msalInstance = new msal.PublicClientApplication(msalConfig);
+
+const loginRequest = {
+    scopes: ['Mail.Send']
+};
+
+let accessToken = null;
+
+// Login no Outlook
+async function loginOutlook() {
+    try {
+        const response = await msalInstance.loginPopup(loginRequest);
+        accessToken = response.accessToken;
+        return accessToken;
+    } catch (error) {
+        console.error('Erro no login:', error);
+        throw error;
+    }
+}
+
+// Enviar e-mail com anexos via Microsoft Graph
+async function sendEmail(emailData) {
+    if (!accessToken) {
+        accessToken = await loginOutlook();
+    }
+
+    const message = {
+        message: {
+            subject: emailData.subject,
+            body: {
+                contentType: 'HTML',
+                content: emailData.body
+            },
+            toRecipients: [
+                {
+                    emailAddress: {
+                        address: emailData.to
+                    }
+                }
+            ],
+            attachments: emailData.attachments
+        }
+    };
+
+    const response = await fetch('https://graph.microsoft.com/v1.0/me/sendMail', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(message)
+    });
+
+    if (!response.ok) {
+        throw new Error('Erro ao enviar e-mail');
+    }
+
+    return response;
+}
+
+// Converter arquivo para base64
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            const base64 = reader.result.split(',')[1];
+            resolve(base64);
+        };
+        reader.onerror = error => reject(error);
+    });
+}
+    </script>
+    <script>
+/**
+ * script.js - Doc Permite
+ * Integração de validação de CNPJ com fluxo de Webhook simulado e UX aprimorada.
+ * Versão Final - Simulação de Webhook e Animações
+ */
+
+// --- VARIÁVEIS GLOBAIS DE ESTADO ---
+let formObserver = null; // Para o IntersectionObserver
+
+// --- FUNÇÕES DE UTILIDADE GERAIS ---
+
+// Função genérica para exibir o nome do arquivo selecionado.
+function handleFileChange(event) {
+    const input = event.target;
+    const fileName = input.files[0]?.name;
+    const fileNameDiv = input.parentElement.querySelector('.file-name');
+    if (fileNameDiv) {
+        fileNameDiv.textContent = fileName ? `Arquivo selecionado: ${fileName}` : '';
+    }
+}
+
+// Adiciona listener para inputs de arquivo
+document.getElementById('compBancario')?.addEventListener('change', handleFileChange);
+
+// --- LÓGICA DO CAMPO DE ASSINATURA (SignaturePad) ---
+const canvasSubadquirente = document.getElementById('signature-pad-subadquirente');
+const signaturePadSubadquirente = new SignaturePad(canvasSubadquirente, {
+    backgroundColor: 'rgb(255, 255, 255)'
+});
+
+const canvasEstabelecimento = document.getElementById('signature-pad-estabelecimento');
+const signaturePadEstabelecimento = new SignaturePad(canvasEstabelecimento, {
+    backgroundColor: 'rgb(255, 255, 255)'
+});
+
+function resizeCanvas() {
+    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+    
+    if (canvasSubadquirente) {
+        canvasSubadquirente.width = canvasSubadquirente.offsetWidth * ratio;
+        canvasSubadquirente.height = canvasSubadquirente.offsetHeight * ratio;
+        canvasSubadquirente.getContext("2d").scale(ratio, ratio);
+        signaturePadSubadquirente.clear();
+    }
+
+    if (canvasEstabelecimento) {
+        canvasEstabelecimento.width = canvasEstabelecimento.offsetWidth * ratio;
+        canvasEstabelecimento.height = canvasEstabelecimento.offsetHeight * ratio;
+        canvasEstabelecimento.getContext("2d").scale(ratio, ratio);
+        signaturePadEstabelecimento.clear();
+    }
+}
+window.addEventListener("resize", resizeCanvas);
+// Chama resizeCanvas após o carregamento para garantir dimensões corretas
+window.addEventListener('load', resizeCanvas);
+
+document.getElementById('clear-signature-subadquirente')?.addEventListener('click', () => signaturePadSubadquirente.clear());
+document.getElementById('clear-signature-estabelecimento')?.addEventListener('click', () => signaturePadEstabelecimento.clear());
+
+// --- MÁSCARAS E FORMATAÇÃO ---
+
+const numericMask = (e) => e.target.value = e.target.value.replace(/\D/g, '');
+
+const cnpjMask = (e) => {
+    let value = e.target.value.replace(/\D/g, '');
+    value = value.substring(0, 14);
+    value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+    value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+    value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+    value = value.replace(/(\d{4})(\d)/, '$1-$2');
+    e.target.value = value;
+};
+
+const phoneMask = (e) => {
+    let value = e.target.value.replace(/\D/g, '');
+    value = value.substring(0, 11);
+    value = value.replace(/^(\d\d)(\d)/g, '($1) $2');
+    value = value.replace(/(\d{4,5})(\d{4})$/, '$1-$2');
+    e.target.value = value;
+};
+
+const cpfMask = (e) => {
+    let value = e.target.value.replace(/\D/g, '');
+    value = value.substring(0, 11);
+    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+    value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    e.target.value = value;
+};
+
+const cepMask = (e) => {
+    let value = e.target.value.replace(/\D/g, '');
+    value = value.substring(0, 8);
+    value = value.replace(/(\d{5})(\d)/, '$1-$2');
+    e.target.value = value;
+};
+
+const accountMask = (e) => {
+    let value = e.target.value.replace(/\D/g, '');
+    value = value.substring(0, 12);
+    value = value.replace(/(\d{1,11})(\d{1})$/, '$1-$2');
+    e.target.value = value;
+};
+
+// --- VALIDAÇÃO DE CNPJ (Algoritmo) ---
+function isValidCNPJ(cnpj) {
+    cnpj = cnpj.replace(/[^\d]+/g, '');
+    if (cnpj === '') return false;
+    if (cnpj.length !== 14) return false;
+    if (/^(\d)\1+$/.test(cnpj)) return false;
+
+    let tamanho = cnpj.length - 2;
+    let numeros = cnpj.substring(0, tamanho);
+    let digitos = cnpj.substring(tamanho);
+    let soma = 0;
+    let pos = tamanho - 7;
+    for (let i = tamanho; i >= 1; i--) {
+        soma += parseInt(numeros.charAt(tamanho - i), 10) * pos--;
+        if (pos < 2) pos = 9;
+    }
+    let resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+    if (resultado !== parseInt(digitos.charAt(0), 10)) return false;
+
+    tamanho = tamanho + 1;
+    numeros = cnpj.substring(0, tamanho);
+    soma = 0;
+    pos = tamanho - 7;
+    for (let i = tamanho; i >= 1; i--) {
+        soma += parseInt(numeros.charAt(tamanho - i), 10) * pos--;
+        if (pos < 2) pos = 9;
+    }
+    resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+    if (resultado !== parseInt(digitos.charAt(1), 10)) return false;
+
+    return true;
+}
+
+// --- FUNÇÕES DE UI (POPUP E FORMULÁRIO) ---
+
+function injectHtmlElements() {
+    if (document.getElementById('complice-popup')) return;
+
+    // Injeta o popup
+    const popupHTML = `
+        <div id="complice-popup" class="complice-overlay hidden">
+            <div id="complice-popup-content" class="complice-popup-content">
+                <div class="icon"></div>
+                <p class="message"></p>
+                <button id="popup-close-btn" class="hidden">OK</button>
+            </div>
+        </div>`;
+    document.body.insertAdjacentHTML('beforeend', popupHTML);
+
+    // Injeta CSS dinâmico para animações e ocultação
+    const style = document.createElement('style');
+    style.textContent = `
+        /* FIX: Faz o wrapper dinâmico se comportar corretamente no grid do desktop */
+        @media (min-width: 768px) {
+            #form-details-wrapper {
+                display: contents;
+            }
+        }
+
+        #form-details-wrapper.hidden { display: none; }
+        .reveal-on-scroll {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            will-change: opacity, transform;
+        }
+        .reveal-on-scroll.is-visible {
+            opacity: 1;
+            transform: none;
+        }
+        /* Estilos do Popup */
+        .complice-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .complice-overlay.hidden { display: none; }
+        .complice-popup-content {
+            background: white; padding: 30px; border-radius: 10px;
+            text-align: center; max-width: 90%; width: 350px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .complice-popup-content .icon { font-size: 40px; margin-bottom: 15px; }
+        .complice-popup-content .message { font-size: 18px; color: #333; margin-bottom: 20px; }
+        .complice-popup-content.sucesso .message { color: #28a745; font-weight: bold; }
+        .complice-popup-content.erro .message { color: #dc3545; font-weight: bold; }
+        .complice-popup-content.alerta .message { color: #ffc107; font-weight: bold; }
+        
+        .spinner {
+            border: 4px solid #f3f3f3; border-top: 4px solid #8B0000;
+            border-radius: 50%; width: 40px; height: 40px;
+            animation: spin 1s linear infinite; margin: 0 auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        #popup-close-btn {
+            background: #8B0000; color: white; border: none;
+            padding: 10px 20px; border-radius: 5px; cursor: pointer;
+            font-size: 16px; margin-top: 10px;
+        }
+        #popup-close-btn.hidden { display: none; }
+    `;
+    document.head.appendChild(style);
+
+    // Evento para fechar popup
+    document.getElementById('popup-close-btn').addEventListener('click', closePopup);
+}
+
+function mostrarPopup(texto, tipo) {
+    const popup = document.getElementById('complice-popup');
+    const popupContent = document.getElementById('complice-popup-content');
+    const iconEl = popupContent.querySelector('.icon');
+    const messageEl = popupContent.querySelector('.message');
+    const closeBtn = document.getElementById('popup-close-btn');
+
+    popupContent.className = 'complice-popup-content'; // Reseta classes
+    messageEl.textContent = texto;
+    iconEl.innerHTML = ''; 
+
+    // Configura o visual baseado no tipo
+    switch (tipo) {
+        case 'success':
+            popupContent.classList.add('sucesso');
+            iconEl.textContent = '✅';
+            closeBtn.classList.remove('hidden');
+            break;
+        case 'error':
+            popupContent.classList.add('erro');
+            iconEl.textContent = '❌';
+            closeBtn.classList.remove('hidden');
+            break;
+        case 'warning':
+            popupContent.classList.add('alerta');
+            iconEl.textContent = '⚠️';
+            closeBtn.classList.remove('hidden');
+            break;
+        case 'loading':
+            popupContent.classList.add('alerta');
+            iconEl.innerHTML = '<div class="spinner"></div>';
+            closeBtn.classList.add('hidden'); // Esconde botão de fechar enquanto carrega
+            break;
+    }
+
+    popup.classList.remove('hidden');
+}
+
+function closePopup() {
+    document.getElementById('complice-popup').classList.add('hidden');
+}
+
+function habilitarSubmit(habilitar) {
+    const submitBtn = document.getElementById('main-submit-btn');
+    if (submitBtn) {
+        submitBtn.disabled = !habilitar;
+        submitBtn.style.cursor = habilitar ? 'pointer' : 'not-allowed';
+        submitBtn.style.opacity = habilitar ? '1' : '0.6';
+    }
+}
+
+function revelarFormulario() {
+    const formDetails = document.getElementById('form-details-wrapper');
+    if (formDetails) {
+        formDetails.classList.remove('hidden');
+        
+        // Configura o IntersectionObserver para animação de scroll
+        if (formObserver) formObserver.disconnect();
+
+        const observerOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
+        
+        formObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        // Seleciona elementos dentro do wrapper para animar
+        const elementsToReveal = formDetails.querySelectorAll('.form-group, .partner-group, .info-box, .signature-section, .section-header, .table-container');
+        elementsToReveal.forEach(el => {
+            el.classList.add('reveal-on-scroll');
+            formObserver.observe(el);
+        });
+    }
+}
+
+// --- INICIALIZAÇÃO E EVENTOS ---
+
+document.addEventListener('DOMContentLoaded', () => {
+    injectHtmlElements();
+
+    // --- LÓGICA DE LOGIN ---
+    const loginContainer = document.getElementById('login-container');
+    const mainContainer = document.querySelector('.container');
+    const loginForm = document.getElementById('loginForm');
+
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const loginBtn = document.getElementById('login-btn');
+            const loginError = document.getElementById('login-error');
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            // Feedback visual de carregamento
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Entrando...';
+            loginError.style.display = 'none';
+
+            try {
+                const response = await fetch('https://gateway-api.perbank.com.br/oauth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userName: email,
+                        password: password
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Login bem-sucedido:', data);
+                    // Opcional: Salvar o token para uso futuro
+                    if (data.token) {
+                        sessionStorage.setItem('apiToken', data.token);
+                    }
+                    
+                    // --- ANIMAÇÃO DE TRANSIÇÃO ---
+                    // 1. Inicia o fade-out do login
+                    loginContainer.classList.add('fade-out-transition');
+
+                    // 2. Aguarda o término da animação (500ms) e troca as telas
+                    setTimeout(() => {
+                        loginContainer.style.display = 'none';
+                        mainContainer.style.display = 'block';
+                        mainContainer.classList.add('fade-in-animation');
+                    }, 500);
+                } else {
+                    const errorData = await response.json().catch(() => ({ message: 'Credenciais inválidas ou erro no servidor.' }));
+                    loginError.textContent = errorData.message || 'Credenciais inválidas. Verifique seu e-mail e senha.';
+                    loginError.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Erro de rede ou na API de login:', error);
+                loginError.textContent = 'Não foi possível conectar ao servidor. Verifique sua conexão com a internet.';
+                loginError.style.display = 'block';
+            } finally {
+                // Restaura o botão
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Entrar';
+            }
+        });
+    }
+
+    preencherDataAtual();
+    logVisitorInfo();
+
+    // Listeners para Validação Inicial
+    const cnpjCheckInput = document.getElementById('cnpjCheck');
+    if (cnpjCheckInput) {
+        cnpjCheckInput.addEventListener('input', cnpjMask);
+        cnpjCheckInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                checkCNPJAccess();
+            }
+        });
+    }
+    document.getElementById('btnConsultarCNPJ')?.addEventListener('click', checkCNPJAccess);
+
+    // Ativa a animação de revelação para os elementos do formulário
+    revelarFormulario();
+
+    // Listeners de Máscaras
+    document.getElementById('cnpj').addEventListener('input', (e) => {
+        cnpjMask(e);
+    });
+    // Adiciona o listener para consultar o CNPJ quando o usuário sai do campo
+    document.getElementById('cnpj').addEventListener('blur', consultarDadosReceita);
+
+    document.getElementById('whatsapp').addEventListener('input', phoneMask);
+    document.getElementById('telefone1').addEventListener('input', phoneMask);
+    document.getElementById('telefone2').addEventListener('input', phoneMask);
+    document.getElementById('cep').addEventListener('input', cepMask);
+    document.getElementById('cep').addEventListener('blur', searchCep);
+    
+    document.getElementById('cpfResponsavel').addEventListener('blur', consultarCPF);
+    document.getElementById('cpfResponsavel').addEventListener('input', cpfMask);
+    document.getElementById('cpfSocio2').addEventListener('input', cpfMask);
+    document.getElementById('cpfSocio3').addEventListener('input', cpfMask);
+    document.getElementById('cpfSocio4').addEventListener('input', cpfMask);
+
+    document.getElementById('cnpjConta').addEventListener('input', cnpjMask);
+    document.getElementById('codigoCliente').addEventListener('input', numericMask);
+    document.getElementById('codigoBanco').addEventListener('input', numericMask);
+    document.getElementById('agencia').addEventListener('input', numericMask);
+    document.getElementById('contaDigito').addEventListener('input', accountMask);
+
+    // Sincronização de campos
+    const filialInput = document.getElementById('filial');
+    const especialistaInput = document.getElementById('especialista');
+    if (filialInput) filialInput.addEventListener('input', () => document.getElementById('filialAssinatura').value = filialInput.value);
+    if (especialistaInput) especialistaInput.addEventListener('input', () => document.getElementById('especialistaAssinatura').value = especialistaInput.value);
+
+    // Contador Pix
+    const chavePixInput = document.getElementById('chavePix');
+    const chavePixCounter = document.getElementById('chavePixCounter');
+    if (chavePixInput) chavePixInput.addEventListener('input', () => chavePixCounter.textContent = `(${chavePixInput.value.length} caracteres)`);
+});
+
+// --- OUTRAS FUNÇÕES AUXILIARES (CEP, DATA, IP) ---
+
+function preencherDataAtual() {
+    const hoje = new Date();
+    const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    
+    const diaEl = document.getElementById('dia');
+    const mesEl = document.getElementById('mes');
+    const anoEl = document.getElementById('ano');
+
+    if (diaEl) diaEl.value = hoje.getDate();
+    if (mesEl) mesEl.value = meses[hoje.getMonth()];
+    if (anoEl) anoEl.value = hoje.getFullYear();
+}
+
+async function searchCep() {
+    const cepInput = document.getElementById('cep');
+    let cep = cepInput.value.replace(/\D/g, '');
+    if (cep.length !== 8) return;
+
+    try {
+        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        const data = await response.json();
+        if (!data.erro) {
+            document.getElementById('logradouro').value = data.logradouro;
+            document.getElementById('bairro').value = data.bairro;
+            document.getElementById('cidade').value = data.localidade;
+            document.getElementById('uf').value = data.uf;
+        }
+    } catch (e) { console.error('Erro CEP', e); }
+}
+
+async function logVisitorInfo() {
+    try {
+        const response = await fetch('https://ipinfo.io/json');
+        const data = await response.json();
+        document.getElementById('visitorIp').value = data.ip || '';
+        document.getElementById('visitorLocation').value = `${data.city}, ${data.region}, ${data.country}`;
+        document.getElementById('accessTime').value = new Date().toLocaleString();
+    } catch (e) { console.error('Erro IP', e); }
+}
+
+// --- CONSULTA CNPJ VIA API ---
+
+function checkCNPJAccess() {
+    const cnpjInput = document.getElementById('cnpjCheck');
+    const statusDiv = document.getElementById('cnpj-check-status');
+    const restrictedContent = document.getElementById('restricted-content');
+    const cnpjValue = cnpjInput.value;
+    const cleanedCnpj = cnpjValue.replace(/\D/g, '');
+
+    if (cleanedCnpj.length !== 14) {
+        statusDiv.textContent = 'CNPJ incompleto.';
+        statusDiv.style.color = 'red';
+        return;
+    }
+
+    statusDiv.textContent = 'Consultando dados...';
+    statusDiv.style.color = '#777';
+
+    fetch("http://localhost:5000/consultar-cnpj", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cnpj: cnpjValue })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'APROVADO') {
+            statusDiv.textContent = '✅ Acesso Aprovado!';
+            statusDiv.style.color = 'green';
+            
+            // Libera o formulário e preenche o segundo campo
+            restrictedContent.classList.remove('hidden');
+            const mainCnpj = document.getElementById('cnpj');
+            if (mainCnpj) {
+                mainCnpj.value = cnpjValue;
+                mainCnpj.dispatchEvent(new Event('blur')); // Dispara validação do campo original se houver
+            }
+            revelarFormulario(); // Reinicia observadores de animação
+        } else if (data.status === 'REPROVADO' || data.status === 'reprovado') {
+            statusDiv.textContent = '⛔ CNPJ Recusado no Compliance';
+            statusDiv.style.color = 'red';
+            restrictedContent.classList.add('hidden');
+        } else {
+            statusDiv.textContent = '⚠️ Favor realizar pesquisa manual: ' + (data.status === 'not_found' ? 'CNPJ não encontrado' : data.status);
+            statusDiv.style.color = 'yellow';
+            restrictedContent.classList.add('hidden');
+        }
+    })
+    .catch(error => {
+        console.error("Erro:", error);
+        statusDiv.textContent = '❌ Erro de conexão.';
+        statusDiv.style.color = 'red';
+    });
+}
+
+async function consultarDadosReceita(event) {
+    const cnpjInput = event.target;
+    const cnpjStatusDiv = document.getElementById('cnpj-status');
+    const cnpjValue = cnpjInput.value.replace(/\D/g, '');
+    
+    if (cnpjValue.length !== 14) {
+        if (cnpjStatusDiv) cnpjStatusDiv.textContent = '';
+        return;
+    }
+
+    if (cnpjStatusDiv) {
+        cnpjStatusDiv.textContent = '🔍 Buscando dados na Receita...';
+        cnpjStatusDiv.style.color = '#777';
+    }
+
+    try {
+        const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpjValue}`);
+        if (!response.ok) throw new Error('Erro na API');
+        const data = await response.json();
+
+        const setVal = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.value = val || '';
+        };
+
+        setVal('razaoSocial', data.razao_social);
+        setVal('nomeFantasia', data.nome_fantasia || data.razao_social);
+        
+        if (data.cep) {
+            setVal('cep', data.cep.replace(/^(\d{5})(\d{3})/, '$1-$2'));
+            setVal('logradouro', data.logradouro);
+            setVal('numero', data.numero);
+            setVal('complemento', data.complemento);
+            setVal('bairro', data.bairro);
+            setVal('cidade', data.municipio);
+            setVal('uf', data.uf);
+        }
+
+        setVal('email', data.email);
+        
+        if (data.ddd_telefone_1) {
+            let tel = data.ddd_telefone_1;
+            if (tel.length >= 10) {
+                tel = tel.replace(/\D/g, '');
+                tel = tel.replace(/^(\d{2})(\d)/g, '($1) $2');
+                tel = tel.replace(/(\d)(\d{4})$/, '$1-$2');
+            }
+            setVal('telefone1', tel);
+        }
+
+        if (cnpjStatusDiv) {
+            cnpjStatusDiv.textContent = '';
+            cnpjStatusDiv.style.color = 'green';
+        }
+    } catch (e) {
+        console.error(e);
+        if (cnpjStatusDiv) {
+            cnpjStatusDiv.textContent = '⚠️ Dados não encontrados automaticamente( Favor seguir com preenchimento manual ).';
+            cnpjStatusDiv.style.color = '#e67e22';
+        }
+    }
+}
+
+async function consultarCPF(event) {
+    const cpfInput = event.target;
+    const nomeInput = document.getElementById('responsavelLegal');
+    const cpfValue = cpfInput.value.replace(/\D/g, '');
+
+    if (cpfValue.length !== 11) return;
+    
+    // Feedback visual
+    nomeInput.placeholder = "Consultando Receita...";
+
+    try {
+        // OBS: A Receita Federal não possui API pública gratuita para CPF (como a BrasilAPI).
+        // É necessário contratar um serviço (Serpro, Infosimples, etc) e colocar a URL aqui.
+        
+        // Exemplo de estrutura para chamada externa:
+        // const response = await fetch(`https://api.seuservico.com.br/cpf/${cpfValue}`, {
+        //     headers: { "Authorization": "Bearer SEU_TOKEN" }
+        // });
+        // const data = await response.json();
+        // if (data.nome) nomeInput.value = data.nome;
+        
+        console.log("Configure a API de CPF no script.js (Função consultarCPF)");
+    } catch (e) {
+        console.error("Erro na consulta de CPF:", e);
+    } finally {
+        nomeInput.placeholder = "";
+    }
+}
+
+// --- ENVIO DO FORMULÁRIO ---
+
+async function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = error => reject(error);
+    });
+}
+
+document.getElementById('docForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const form = e.target;
+
+    try {
+        // Validações do lado do cliente
+        if (signaturePadSubadquirente.isEmpty() || signaturePadEstabelecimento.isEmpty()) {
+            throw new Error('As assinaturas do Subadquirente e do Estabelecimento são obrigatórias.');
+        }
+        if (!document.getElementById('compBancario')?.files[0]) {
+            throw new Error('O anexo do Comprovante Bancário é obrigatório.');
+        }
+
+        mostrarPopup('Enviando formulário...', 'loading');
+
+        // 1. Coletar dados do formulário
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        const segmentos = formData.getAll('segmento').join(', ');
+
+        // 2. Construir Corpo do E-mail (HTML)
+        let htmlBody = `
+            <h2>Novo Credenciamento - PERmite</h2>
+            <table border="1" style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif;">
+                <tr style="background-color: #8B0000; color: white;"><th colspan="2" style="padding: 10px;">Dados do Cliente</th></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Razão Social:</td><td style="padding: 8px;">${data.razaoSocial || ''}</td></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Nome Fantasia:</td><td style="padding: 8px;">${data.nomeFantasia || ''}</td></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">CNPJ:</td><td style="padding: 8px;">${data.cnpj || ''}</td></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Código do Cliente:</td><td style="padding: 8px;">${data.codigoCliente || ''}</td></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Especialista/Executivo:</td><td style="padding: 8px;">${data.especialista || ''}</td></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Filial:</td><td style="padding: 8px;">${data.filial || ''}</td></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Marca:</td><td style="padding: 8px;">${data.marca || ''}</td></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Qtde de POS:</td><td style="padding: 8px;">${data.qtdePos || ''}</td></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Segmento:</td><td style="padding: 8px;">${segmentos}</td></tr>
+                
+                <tr style="background-color: #f0f0f0;"><th colspan="2" style="padding: 10px;">Contato</th></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Principal Contato:</td><td style="padding: 8px;">${data.principalContato || ''}</td></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">E-mail:</td><td style="padding: 8px;">${data.email || ''}</td></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">WhatsApp:</td><td style="padding: 8px;">${data.whatsapp || ''}</td></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Quem Sugeriu:</td><td style="padding: 8px;">${data.quemSugeriu || ''}</td></tr>
+
+                <tr style="background-color: #f0f0f0;"><th colspan="2" style="padding: 10px;">Endereço</th></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">CEP:</td><td style="padding: 8px;">${data.cep || ''}</td></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Logradouro:</td><td style="padding: 8px;">${data.logradouro || ''}, ${data.numero || ''} ${data.complemento || ''}</td></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Bairro:</td><td style="padding: 8px;">${data.bairro || ''}</td></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Cidade/UF:</td><td style="padding: 8px;">${data.cidade || ''} / ${data.uf || ''}</td></tr>
+
+                <tr style="background-color: #f0f0f0;"><th colspan="2" style="padding: 10px;">Dados Bancários</th></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Banco:</td><td style="padding: 8px;">${data.nomeBanco || ''} (Cód: ${data.codigoBanco || ''})</td></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Agência:</td><td style="padding: 8px;">${data.agencia || ''}</td></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Conta:</td><td style="padding: 8px;">${data.contaDigito || ''}</td></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Chave PIX:</td><td style="padding: 8px;">${data.chavePix || ''} (${data.tipoChavePix || ''})</td></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Titular Conta:</td><td style="padding: 8px;">${data.razaoSocialConta || ''} (CNPJ: ${data.cnpjConta || ''})</td></tr>
+
+                <tr style="background-color: #f0f0f0;"><th colspan="2" style="padding: 10px;">Condições Comerciais</th></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Antecipação Automática:</td><td style="padding: 8px;">${data.antecipacaoAutomatica || ''}</td></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Parcela Vendas:</td><td style="padding: 8px;">${data.parcelaVendas || ''}</td></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Custo por conta Estab.:</td><td style="padding: 8px;">${data.porContaEstabelecimento || ''}</td></tr>
+                
+                <tr style="background-color: #f0f0f0;"><th colspan="2" style="padding: 10px;">Outros</th></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Data de Envio:</td><td style="padding: 8px;">${data.dataRecebimento || ''}</td></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Tipo Credenciamento:</td><td style="padding: 8px;">${data.tipoCredenciamento || ''}</td></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Responsável Legal:</td><td style="padding: 8px;">${data.responsavelLegal || ''} (CPF: ${data.cpfResponsavel || ''})</td></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">IP Visitante:</td><td style="padding: 8px;">${document.getElementById('visitorIp').value}</td></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Localização:</td><td style="padding: 8px;">${document.getElementById('visitorLocation').value}</td></tr>
+            </table>
+        `;
+
+        // 3. Preparar Anexos
+        const attachments = [];
+
+        // Comprovante Bancário
+        const fileInput = document.getElementById('compBancario');
+        if (fileInput.files[0]) {
+            const base64File = await fileToBase64(fileInput.files[0]);
+            attachments.push({
+                "@odata.type": "#microsoft.graph.fileAttachment",
+                "name": fileInput.files[0].name,
+                "contentBytes": base64File
+            });
+        }
+
+        // Assinaturas
+        const sigSub = signaturePadSubadquirente.toDataURL().split(',')[1];
+        attachments.push({
+            "@odata.type": "#microsoft.graph.fileAttachment",
+            "name": "assinatura_subadquirente.png",
+            "contentBytes": sigSub
+        });
+
+        const sigEstab = signaturePadEstabelecimento.toDataURL().split(',')[1];
+        attachments.push({
+            "@odata.type": "#microsoft.graph.fileAttachment",
+            "name": "assinatura_estabelecimento.png",
+            "contentBytes": sigEstab
+        });
+
+        // 4. Enviar E-mail
+        const emailData = {
+            subject: "Novo - Credenciamento",
+            body: htmlBody,
+            to: "docpermite@per.com.br",
+            attachments: attachments
+        };
+
+        await sendEmail(emailData);
+
+        closePopup(); // Fecha o popup de "loading"
+        mostrarPopup('Formulário enviado com sucesso!', 'success');
+
+        // Limpa o formulário e os campos
+        form.reset();
+        signaturePadSubadquirente.clear();
+        signaturePadEstabelecimento.clear();
+
+        // Limpa o nome do arquivo exibido
+        const fileNameDiv = document.getElementById('compBancario').parentElement.querySelector('.file-name');
+        if (fileNameDiv) {
+            fileNameDiv.textContent = '';
+        }
+        preencherDataAtual(); // Preenche a data novamente após o reset
+
+    } catch (error) {
+        closePopup(); // Garante que o popup de loading feche em caso de erro
+        mostrarPopup(error.message || 'Ocorreu um erro. Verifique os campos.', 'error');
+    }
+});
+    </script>
+</body>
+</html>
